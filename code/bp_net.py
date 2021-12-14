@@ -1,6 +1,8 @@
 from net import net
 from bp_layer import bp_layer
 
+import time
+import wandb
 import torch
 import numpy as np
 from tqdm import tqdm
@@ -23,13 +25,12 @@ class bp_net(net):
 
         return layers
 
-    def train(self, train_loader, valid_loader, epochs, lr):
+    def train(self, train_loader, valid_loader, epochs, lr, log):
         for e in range(epochs):
-            print(f"epochs {e}")
-
             # monitor
             last_weights = [None] * self.depth
-            grad_weights = [0] * self.depth
+            weights_moving = [0] * self.depth
+            start_time = time.time()
 
             # train forward
             for x, y in train_loader:
@@ -40,14 +41,33 @@ class bp_net(net):
                     last_weights[d] = self.layers[d].weight
                 self.update_weights(y, y_pred, lr)
                 for d in range(self.depth):
-                    grad_weights[d] += torch.norm(last_weights[d] - self.layers[d].weight)
+                    weights_moving[d] += torch.norm(last_weights[d] - self.layers[d].weight)
 
             # predict
             with torch.no_grad():
-                print(f"\ttrain : {self.test(train_loader)}")
-                print(f"\tvalid : {self.test(valid_loader)}")
-                for d in range(self.depth):
-                    print(f"\tdW {d}  : {float(grad_weights[d])/len(train_loader)}")
+                train_loss, train_acc = self.test(train_loader)
+                valid_loss, valid_acc = self.test(valid_loader)
+                if log:
+                    log_dict = {"train loss": train_loss,
+                                "valid loss": valid_loss}
+                    if train_acc is not None:
+                        log_dict["train accuracy"] = train_acc
+                    if valid_acc is not None:
+                        log_dict["valid accuracy"] = valid_acc
+                    for d in range(self.depth):
+                        log_dict[f"weight moving {d}"] = float(weights_moving[d])
+                    log_dict["time"] = time.time() - start_time
+                    wandb.log(log_dict)
+                else:
+                    print(f"epochs {e}")
+                    print(f"\ttrain loss     : {train_loss}")
+                    print(f"\tvalid loss     : {valid_loss}")
+                    if train_acc is not None:
+                        print(f"\ttrain acc      : {train_acc}")
+                    if valid_acc is not None:
+                        print(f"\tvalid acc      : {valid_acc}")
+                    for d in range(self.depth):
+                        print(f"\tweight moving {d}: {float(weights_moving[d])}")
 
     def update_weights(self, y, y_pred, lr):
         loss = self.loss_function(y_pred, y)

@@ -1,0 +1,47 @@
+2021-12-15 03:11:24,979 INFO    MainThread:16694 [internal.py:wandb_internal():91] W&B internal server running at pid: 16694, started at: 2021-12-15 03:11:24.979572
+2021-12-15 03:11:24,981 DEBUG   HandlerThread:16694 [handler.py:handle_request():121] handle_request: check_version
+2021-12-15 03:11:24,981 INFO    WriterThread:16694 [datastore.py:open_for_write():77] open: /Users/tatsukichi/InvertibleTargetPropagation/code/wandb/run-20211215_031124-1ub1zg18/run-1ub1zg18.wandb
+2021-12-15 03:11:24,982 DEBUG   SenderThread:16694 [sender.py:send():176] send: header
+2021-12-15 03:11:24,982 DEBUG   SenderThread:16694 [sender.py:send_request():186] send_request: check_version
+2021-12-15 03:11:25,042 DEBUG   SenderThread:16694 [sender.py:send():176] send: run
+2021-12-15 03:11:25,267 INFO    SenderThread:16694 [dir_watcher.py:__init__():168] watching files in: /Users/tatsukichi/InvertibleTargetPropagation/code/wandb/run-20211215_031124-1ub1zg18/files
+2021-12-15 03:11:25,267 INFO    SenderThread:16694 [sender.py:_start_run_threads():699] run started: 1ub1zg18 with start time 1639505484
+2021-12-15 03:11:25,267 DEBUG   SenderThread:16694 [sender.py:send():176] send: summary
+2021-12-15 03:11:25,268 INFO    SenderThread:16694 [sender.py:_save_file():821] saving file wandb-summary.json with policy end
+2021-12-15 03:11:25,269 DEBUG   HandlerThread:16694 [handler.py:handle_request():121] handle_request: run_start
+2021-12-15 03:11:26,300 INFO    Thread-8  :16694 [dir_watcher.py:_on_file_created():216] file/dir created: /Users/tatsukichi/InvertibleTargetPropagation/code/wandb/run-20211215_031124-1ub1zg18/files/wandb-summary.json
+2021-12-15 03:11:26,945 DEBUG   HandlerThread:16694 [meta.py:__init__():39] meta init
+2021-12-15 03:11:26,945 DEBUG   HandlerThread:16694 [meta.py:__init__():53] meta init done
+2021-12-15 03:11:26,945 DEBUG   HandlerThread:16694 [meta.py:probe():210] probe
+2021-12-15 03:11:26,946 DEBUG   HandlerThread:16694 [meta.py:_setup_git():200] setup git
+2021-12-15 03:11:26,964 DEBUG   HandlerThread:16694 [meta.py:_setup_git():207] setup git done
+2021-12-15 03:11:26,964 DEBUG   HandlerThread:16694 [meta.py:_save_pip():57] save pip
+2021-12-15 03:11:26,966 DEBUG   HandlerThread:16694 [meta.py:_save_pip():71] save pip done
+2021-12-15 03:11:26,966 DEBUG   HandlerThread:16694 [meta.py:_save_conda():78] save conda
+2021-12-15 03:11:27,277 INFO    Thread-8  :16694 [dir_watcher.py:_on_file_created():216] file/dir created: /Users/tatsukichi/InvertibleTargetPropagation/code/wandb/run-20211215_031124-1ub1zg18/files/requirements.txt
+2021-12-15 03:11:27,278 INFO    Thread-8  :16694 [dir_watcher.py:_on_file_created():216] file/dir created: /Users/tatsukichi/InvertibleTargetPropagation/code/wandb/run-20211215_031124-1ub1zg18/files/conda-environment.yaml
+2021-12-15 03:11:27,907 WARNING MainThread:16694 [internal.py:wandb_internal():147] Internal process interrupt: 1
+2021-12-15 03:11:27,995 DEBUG   HandlerThread:16694 [meta.py:_save_conda():86] save conda done
+2021-12-15 03:11:27,996 DEBUG   HandlerThread:16694 [meta.py:probe():252] probe done
+2021-12-15 03:11:27,999 DEBUG   SenderThread:16694 [sender.py:send():176] send: files
+2021-12-15 03:11:27,999 INFO    SenderThread:16694 [sender.py:_save_file():821] saving file wandb-metadata.json with policy now
+2021-12-15 03:11:28,280 INFO    Thread-8  :16694 [dir_watcher.py:_on_file_created():216] file/dir created: /Users/tatsukichi/InvertibleTargetPropagation/code/wandb/run-20211215_031124-1ub1zg18/files/wandb-metadata.json
+2021-12-15 03:11:28,743 INFO    Thread-11 :16694 [upload_job.py:push():133] Uploaded file /var/folders/gs/ykv9c1jd3j3dnhmyv4sm5f280000gn/T/tmpfh7nkc0gwandb/1o4jk8ua-wandb-metadata.json
+2021-12-15 03:11:37,217 WARNING MainThread:16694 [internal.py:wandb_internal():147] Internal process interrupt: 2
+2021-12-15 03:11:37,217 ERROR   MainThread:16694 [internal.py:wandb_internal():150] Internal process interrupted.
+2021-12-15 03:11:38,028 INFO    HandlerThread:16694 [handler.py:finish():632] shutting down handler
+2021-12-15 03:11:38,028 INFO    WriterThread:16694 [datastore.py:close():258] close: /Users/tatsukichi/InvertibleTargetPropagation/code/wandb/run-20211215_031124-1ub1zg18/run-1ub1zg18.wandb
+2021-12-15 03:11:38,028 INFO    SenderThread:16694 [sender.py:finish():925] shutting down sender
+2021-12-15 03:11:38,028 INFO    SenderThread:16694 [dir_watcher.py:finish():282] shutting down directory watcher
+2021-12-15 03:11:38,317 INFO    SenderThread:16694 [dir_watcher.py:finish():312] scan: /Users/tatsukichi/InvertibleTargetPropagation/code/wandb/run-20211215_031124-1ub1zg18/files
+2021-12-15 03:11:38,317 INFO    SenderThread:16694 [dir_watcher.py:finish():318] scan save: /Users/tatsukichi/InvertibleTargetPropagation/code/wandb/run-20211215_031124-1ub1zg18/files/requirements.txt requirements.txt
+2021-12-15 03:11:38,317 INFO    SenderThread:16694 [dir_watcher.py:finish():318] scan save: /Users/tatsukichi/InvertibleTargetPropagation/code/wandb/run-20211215_031124-1ub1zg18/files/config.yaml config.yaml
+2021-12-15 03:11:38,317 INFO    SenderThread:16694 [dir_watcher.py:finish():318] scan save: /Users/tatsukichi/InvertibleTargetPropagation/code/wandb/run-20211215_031124-1ub1zg18/files/wandb-summary.json wandb-summary.json
+2021-12-15 03:11:38,318 INFO    SenderThread:16694 [dir_watcher.py:finish():318] scan save: /Users/tatsukichi/InvertibleTargetPropagation/code/wandb/run-20211215_031124-1ub1zg18/files/conda-environment.yaml conda-environment.yaml
+2021-12-15 03:11:38,318 INFO    SenderThread:16694 [dir_watcher.py:finish():318] scan save: /Users/tatsukichi/InvertibleTargetPropagation/code/wandb/run-20211215_031124-1ub1zg18/files/wandb-metadata.json wandb-metadata.json
+2021-12-15 03:11:38,318 INFO    SenderThread:16694 [file_pusher.py:finish():176] shutting down file pusher
+2021-12-15 03:11:38,318 INFO    SenderThread:16694 [file_pusher.py:join():181] waiting for file pusher
+2021-12-15 03:11:38,880 INFO    Thread-12 :16694 [upload_job.py:push():133] Uploaded file /Users/tatsukichi/InvertibleTargetPropagation/code/wandb/run-20211215_031124-1ub1zg18/files/requirements.txt
+2021-12-15 03:11:38,881 INFO    Thread-14 :16694 [upload_job.py:push():133] Uploaded file /Users/tatsukichi/InvertibleTargetPropagation/code/wandb/run-20211215_031124-1ub1zg18/files/wandb-summary.json
+2021-12-15 03:11:38,914 INFO    Thread-13 :16694 [upload_job.py:push():133] Uploaded file /Users/tatsukichi/InvertibleTargetPropagation/code/wandb/run-20211215_031124-1ub1zg18/files/config.yaml
+2021-12-15 03:11:39,506 INFO    MainThread:16694 [internal.py:handle_exit():78] Internal process exited
