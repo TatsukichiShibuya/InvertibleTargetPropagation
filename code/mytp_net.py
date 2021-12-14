@@ -92,7 +92,7 @@ class mytp_net(net):
             loss = self.MSELoss(h, q)
             """
             # minimize |I-WO|^2 + |I-OW|^2
-            eye = torch.eye(self.layers[d].weight.shape[0])
+            eye = torch.eye(self.layers[d].weight.shape[0], deice=self.device)
             loss = torch.norm(eye - self.layers[d].weight @ self.layers[d].backweight)**2
             loss += torch.norm(eye - self.layers[d].backweight @ self.layers[d].weight)**2
 
