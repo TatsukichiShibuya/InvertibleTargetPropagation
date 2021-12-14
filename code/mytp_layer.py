@@ -3,12 +3,12 @@ from torch import nn
 
 
 class mytp_layer:
-    def __init__(self, in_dim, out_dim, activation_function):
+    def __init__(self, in_dim, out_dim, activation_function, device):
         self.invertible = (out_dim == in_dim)
         self.invertible = False
 
         # weights
-        self.weight = torch.empty(out_dim, in_dim, requires_grad=True)
+        self.weight = torch.empty(out_dim, in_dim, requires_grad=True, device=device)
         nn.init.orthogonal_(self.weight)
 
         self.backweight = self.weight.T.detach().clone().requires_grad_()

@@ -18,12 +18,12 @@ class mytp_net(net):
         layers = [None] * self.depth
 
         # first layer
-        layers[0] = mytp_layer(in_dim, hid_dim, activation_function)
+        layers[0] = mytp_layer(in_dim, hid_dim, activation_function, self.device)
         # hidden layers
         for i in range(1, self.depth - 1):
-            layers[i] = mytp_layer(hid_dim, hid_dim, activation_function)
+            layers[i] = mytp_layer(hid_dim, hid_dim, activation_function, self.device)
         # last layer
-        layers[-1] = mytp_layer(hid_dim, out_dim, "linear")
+        layers[-1] = mytp_layer(hid_dim, out_dim, "linear", self.device)
 
         return layers
 
@@ -33,6 +33,7 @@ class mytp_net(net):
         for e in range(10):
             # train backward
             for x, y in train_loader:
+                x, y = x.to(self.device), y.to(self.device)
                 for be in range(b_epochs):
                     self.train_backweights(x, lrb, sigma)
 
@@ -50,6 +51,7 @@ class mytp_net(net):
 
             # train forward
             for x, y in train_loader:
+                x, y = x.to(self.device), y.to(self.device)
                 # train backward
                 for be in range(b_epochs):
                     self.train_backweights(x, lrb, sigma)
@@ -150,5 +152,6 @@ class mytp_net(net):
     def reconstruction_loss_of_dataset(self, data_loader):
         rec_loss = 0
         for x, y in data_loader:
+            x, y = x.to(self.device), y.to(self.device)
             rec_loss += self.reconstruction_loss(x)
         return rec_loss / len(data_loader.dataset)

@@ -1,4 +1,4 @@
-from utils import plot_regression, worker_init_fn
+from utils import plot_regression, worker_init_fn, fix_seed
 from dataset import make_regression_dataset, make_classification_dataset
 
 from bp_net import bp_net
@@ -13,7 +13,6 @@ import numpy as np
 from torch import nn
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
-os.environ['OMP_NUM_THREADS'] = '1'
 
 
 def get_args():
@@ -46,21 +45,23 @@ def get_args():
     parser.add_argument("--b_epochs",   type=int, default=0)
     parser.add_argument("--sigma",      type=float, default=0.01)
 
+    # other
+    parser.add_argument("--plot", action="store_true")
+    parser.add_argument("--log", action="store_true")
+
     args = parser.parse_args()
     return args
-
-
-def fix_seed(seed):
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)
-    torch.backends.cudnn.deterministic = True
-    torch.backends.cudnn.benchmark = False
 
 
 def main(**kwargs):
     # initialize
     fix_seed(kwargs["seed"])
+    if torch.cuda.is_available():
+        device = torch.device("cuda:0")
+    else:
+        device = torch.device("cpu")
+        os.environ['OMP_NUM_THREADS'] = '1'
+    print(device)
 
     # make dataset
     if kwargs["problem"] == "regression":
@@ -94,14 +95,16 @@ def main(**kwargs):
 
     # initialize model
     if kwargs["algorithm"] == "BP":
-        model = bp_net(depth=kwargs["depth"],
+        model = bp_net(device=device,
+                       depth=kwargs["depth"],
                        in_dim=kwargs["in_dim"],
                        out_dim=kwargs["out_dim"],
                        hid_dim=kwargs["hid_dim"],
                        activation_function=kwargs["activation_function"],
                        loss_function=loss_function)
     elif kwargs["algorithm"] == "DTTP":
-        model = dttp_net(depth=kwargs["depth"],
+        model = dttp_net(device=device,
+                         depth=kwargs["depth"],
                          in_dim=kwargs["in_dim"],
                          out_dim=kwargs["out_dim"],
                          hid_dim=kwargs["hid_dim"],
@@ -109,7 +112,8 @@ def main(**kwargs):
                          activation_function=kwargs["activation_function"],
                          loss_function=loss_function)
     elif kwargs["algorithm"] == "MyTP":
-        model = mytp_net(depth=kwargs["depth"],
+        model = mytp_net(device=device,
+                         depth=kwargs["depth"],
                          in_dim=kwargs["in_dim"],
                          out_dim=kwargs["out_dim"],
                          hid_dim=kwargs["hid_dim"],
@@ -134,7 +138,7 @@ def main(**kwargs):
     print(f"\ttest  : {model.test(test_loader)}")
 
     # plot
-    if kwargs["problem"] == "regression" and kwargs["in_dim"] == 2:
+    if kwargs["plot"] and (["problem"] == "regression" and kwargs["in_dim"] == 2):
         plot_regression(model, kwargs["algorithm"])
 
 

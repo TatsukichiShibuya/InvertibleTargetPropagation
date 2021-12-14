@@ -3,12 +3,12 @@ from torch import nn
 
 
 class dttp_layer:
-    def __init__(self, in_dim, out_dim, activation_function):
+    def __init__(self, in_dim, out_dim, activation_function, device):
         # weights
-        self.weight = torch.empty(out_dim, in_dim, requires_grad=True)
+        self.weight = torch.empty(out_dim, in_dim, requires_grad=True, device=device)
         nn.init.orthogonal_(self.weight)
 
-        self.backweight = torch.empty(in_dim, out_dim, requires_grad=True)
+        self.backweight = torch.empty(in_dim, out_dim, requires_grad=True, device=device)
         nn.init.orthogonal_(self.backweight)
 
         # functions

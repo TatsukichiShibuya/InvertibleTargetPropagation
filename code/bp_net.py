@@ -14,12 +14,12 @@ class bp_net(net):
         layers = [None] * self.depth
 
         # first layer
-        layers[0] = bp_layer(in_dim, hid_dim, activation_function)
+        layers[0] = bp_layer(in_dim, hid_dim, activation_function, self.device)
         # hidden layers
         for i in range(1, self.depth - 1):
-            layers[i] = bp_layer(hid_dim, hid_dim, activation_function)
+            layers[i] = bp_layer(hid_dim, hid_dim, activation_function, self.device)
         # last layer
-        layers[-1] = bp_layer(hid_dim, out_dim, "linear")
+        layers[-1] = bp_layer(hid_dim, out_dim, "linear", self.device)
 
         return layers
 
@@ -33,6 +33,7 @@ class bp_net(net):
 
             # train forward
             for x, y in train_loader:
+                x, y = x.to(self.device), y.to(self.device)
                 y_pred = self.forward(x)
 
                 for d in range(self.depth):

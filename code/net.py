@@ -7,6 +7,7 @@ import torch
 
 class net(metaclass=ABCMeta):
     def __init__(self, **kwargs):
+        self.device = kwargs["device"]
         self.depth = kwargs["depth"]
         self.layers = self.init_layers(kwargs["in_dim"],
                                        kwargs["hid_dim"],
@@ -24,9 +25,9 @@ class net(metaclass=ABCMeta):
         return self.forward(x, update=False)
 
     def test(self, data_loader):
-        pred = None
-        label = None
+        pred, label = None, None
         for x, y in data_loader:
+            x, y = x.to(self.device), y.to(self.device)
             y_pred = self.predict(x)
             pred = y_pred if pred is None else torch.cat([pred, y_pred])
             label = y if label is None else torch.cat([label, y])
