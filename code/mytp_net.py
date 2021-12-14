@@ -87,7 +87,7 @@ class mytp_net(net):
             """
             # minimize |q-g(f(q))|^2
             q = self.layers[d - 1].linear_activation.detach().clone()
-            q += torch.normal(0, sigma, size=q.shape)
+            q += torch.normal(0, sigma, size=q.shape, device=self.device)
             h = self.layers[d].backward(self.layers[d].forward(q, update=False))
             loss = self.MSELoss(h, q)
             """
