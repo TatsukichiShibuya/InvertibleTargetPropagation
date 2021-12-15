@@ -20,15 +20,15 @@ def get_args():
     parser = argparse.ArgumentParser()
 
     # dataset
-    parser.add_argument("--problem",    type=str, default="regression",
+    parser.add_argument("--problem",    type=str, default="classification",
                         choices=['regression', 'classification'])
-    parser.add_argument("--datasize",   type=int, default=1000)
+    parser.add_argument("--datasize",   type=int, default=70000)
 
     # model architecture
     parser.add_argument("--depth",      type=int, default=4)
-    parser.add_argument("--in_dim",     type=int, default=2)
-    parser.add_argument("--hid_dim",    type=int, default=100)
-    parser.add_argument("--out_dim",    type=int, default=1)
+    parser.add_argument("--in_dim",     type=int, default=784)
+    parser.add_argument("--hid_dim",    type=int, default=256)
+    parser.add_argument("--out_dim",    type=int, default=10)
     parser.add_argument("--activation_function", type=str, default="leakyrelu",
                         choices=['leakyrelu', 'sigmoid', 'relu'])
 
