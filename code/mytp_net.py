@@ -151,7 +151,7 @@ class mytp_net(net):
                 if self.layers[d].backweight.grad is not None:
                     self.layers[d].backweight.grad.zero_()
                 loss.backward()
-                batch_size = len(self.layers[d].target)
+                batch_size = len(self.layers[d].linear_activation)
                 self.layers[d].backweight = (self.layers[d].backweight - (lrb / batch_size) *
                                              self.layers[d].backweight.grad).detach().requires_grad_()
 
