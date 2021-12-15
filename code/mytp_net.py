@@ -38,6 +38,8 @@ class mytp_net(net):
                 x, y = x.to(self.device), y.to(self.device)
                 for be in range(b_epochs):
                     self.train_backweights(x, lrb, b_sigma, b_loss)
+                    if b_loss == "inv":
+                        break
 
             # reconstruction loss
             # print(f"epochs {e}: {self.reconstruction_loss_of_dataset(train_loader)}")
@@ -58,6 +60,8 @@ class mytp_net(net):
                 # train backward
                 for be in range(b_epochs):
                     self.train_backweights(x, lrb, b_sigma, b_loss)
+                    if b_loss == "inv":
+                        break
 
                 # compute target
                 self.compute_target(x, y, stepsize, refinement_iter, refinement_type)
@@ -78,7 +82,6 @@ class mytp_net(net):
                     t = self.layers[d].forward(t, update=False)
                 target_error += torch.norm(t - self.layers[self.depth - self.direct_depth].target)
                 monitor_end_time = time.time()
-
                 monitor_time += monitor_end_time - monitor_start_time
 
                 # train forward
