@@ -1,0 +1,91 @@
+wandb_version: 1
+
+_wandb:
+  desc: null
+  value:
+    cli_version: 0.10.30
+    framework: torch
+    is_jupyter_run: false
+    is_kaggle_kernel: false
+    python_version: 3.7.4
+    t:
+      1:
+      - 1
+      2:
+      - 1
+      4: 3.7.4
+      5: 0.10.30
+      8:
+      - 5
+activation function:
+  desc: null
+  value: leakyrelu
+algorithm:
+  desc: null
+  value: MyTP
+b_epochs:
+  desc: null
+  value: 9
+b_loss:
+  desc: null
+  value: inv
+b_sigma:
+  desc: null
+  value: 0.31103770444130013
+batch_size:
+  desc: null
+  value: 151
+depth:
+  desc: null
+  value: 4
+direct depth:
+  desc: null
+  value: 2
+epochs:
+  desc: null
+  value: 100
+epochs (backward):
+  desc: null
+  value: 9
+hid_dim:
+  desc: null
+  value: 663
+in_dim:
+  desc: null
+  value: 784
+learning rate (backward):
+  desc: null
+  value: 0.019070529671368585
+learning_rate_for_backward:
+  desc: null
+  value: 0.019070529671368585
+loss (backward):
+  desc: null
+  value: inv
+out_dim:
+  desc: null
+  value: 10
+problem:
+  desc: null
+  value: classification-70000
+refinement iteration:
+  desc: null
+  value: 6
+refinement type:
+  desc: null
+  value: gf
+refinement_iter:
+  desc: null
+  value: 6
+refinement_type:
+  desc: null
+  value: gf
+seed:
+  desc: null
+  value: 39
+sigma (backward):
+  desc: null
+  value: 0.31103770444130013
+stepsize:
+  desc: null
+  value: 0.07862464171882241

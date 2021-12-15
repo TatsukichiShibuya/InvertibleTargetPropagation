@@ -1,0 +1,20 @@
+wandb_version: 1
+
+b_epochs:
+  value: 8
+b_loss:
+  value: eye
+b_sigma:
+  value: 0.3386750540609912
+batch_size:
+  value: 192
+hid_dim:
+  value: 551
+learning_rate_for_backward:
+  value: 0.096236861563814
+refinement_iter:
+  value: 30
+refinement_type:
+  value: gf
+stepsize:
+  value: 0.016422963881001652

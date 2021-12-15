@@ -68,7 +68,6 @@ def main(**kwargs):
 
     if torch.cuda.is_available():
         device = torch.device("cuda:0")
-        os.environ['OMP_NUM_THREADS'] = '28'
     else:
         device = torch.device("cpu")
         os.environ['OMP_NUM_THREADS'] = '1'

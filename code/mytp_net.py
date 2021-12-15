@@ -129,6 +129,8 @@ class mytp_net(net):
                     for d in range(1, self.depth - self.direct_depth + 1):
                         print(f"\tcondition {d}    : {np.mean(weights_condition[d-1])}")
                     print(f"\ttarget error   : {float(target_error)}")
+                    print(f"\ttime           : {time.time() - start_time - monitor_time}")
+                    print(f"\tmonitor time   : {monitor_time}")
 
     def train_backweights(self, x, lrb, b_sigma, b_loss):
         self.forward(x)
