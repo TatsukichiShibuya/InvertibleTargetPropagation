@@ -42,7 +42,7 @@ class mytp_net(net):
                         break
 
             # reconstruction loss
-            # print(f"epochs {e}: {self.reconstruction_loss_of_dataset(train_loader)}")
+            print(f"epochs {e}: {self.reconstruction_loss_of_dataset(train_loader)}")
 
         # train forward network
         for e in range(epochs):
