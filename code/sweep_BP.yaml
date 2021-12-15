@@ -1,0 +1,18 @@
+program: wrapper_BP.py
+method: bayes
+metric:
+  goal: minimize
+  name: valid loss
+parameters:
+  batchsize:
+    max: 256
+    min: 64
+    distribution: int_uniform
+  hid_dim:
+    max: 1024
+    min: 512
+    distribution: int_uniform
+  learning rate:
+    max: 1e-1
+    min: 1e-4
+    distribution: uniform

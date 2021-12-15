@@ -1,0 +1,44 @@
+program: wrapper_DTTP.py
+method: bayes
+metric:
+  goal: minimize
+  name: valid loss
+parameters:
+  batchsize:
+    max: 256
+    min: 64
+    distribution: int_uniform
+  hid_dim:
+    max: 1024
+    min: 512
+    distribution: int_uniform
+  stepsize:
+    max: 1e-1
+    min: 1e-4
+    distribution: uniform
+  loss (backward):
+    values:
+      - fg
+      - gf
+    distribution: categorical
+  learning rate (backward):
+    max: 1e-1
+    min: 1e-4
+    distribution: uniform
+  epochs (backward):
+    max: 10
+    min: 1
+    distribution: int_uniform
+  sigma (backward):
+    max: 1e-0
+    min: 1e-5
+    distribution: uniform
+  refinement iteration:
+    max: 50
+    min: 0
+    distribution: int_uniform
+  refinement type:
+    values:
+      - fg
+      - gf
+    distribution: categorical
