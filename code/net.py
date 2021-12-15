@@ -32,6 +32,8 @@ class net(metaclass=ABCMeta):
             y_pred = self.predict(x)
             pred = y_pred if pred is None else torch.cat([pred, y_pred])
             label = y if label is None else torch.cat([label, y])
+        import pdb
+        pdb.set_trace()
         if isinstance(self.loss_function, nn.CrossEntropyLoss):  # classification
             return self.loss_function(pred, label) / len(data_loader.dataset), calc_accuracy(pred, label)
         elif isinstance(self.loss_function, nn.MSELoss):  # regression

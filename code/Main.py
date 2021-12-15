@@ -36,7 +36,7 @@ def get_args():
     parser.add_argument("--algorithm",  type=str, default="BP",
                         choices=['BP', 'DTTP', 'MyTP'])
     parser.add_argument("--epochs",     type=int, default=100)
-    parser.add_argument("--batchsize",  type=int, default=100)
+    parser.add_argument("--batch_size",  type=int, default=100)
     parser.add_argument("--seed",       type=int, default=39)
 
     # parameters used in BP
@@ -78,7 +78,7 @@ def main(**kwargs):
         config = {"problem": kwargs["problem"] + "-" + str(kwargs["datasize"]),
                   "algorithm": kwargs["algorithm"],
                   "epochs": kwargs["epochs"],
-                  "batchsize": kwargs["batchsize"],
+                  "batch_size": kwargs["batch_size"],
                   "seed": kwargs["seed"],
                   "depth": kwargs["depth"],
                   "in_dim": kwargs["in_dim"],
@@ -109,19 +109,19 @@ def main(**kwargs):
         sys.tracebacklimit = 0
         raise NotImplementedError(f"dataset : {kwargs['dataset']} ?")
     train_loader = torch.utils.data.DataLoader(trainset,
-                                               batch_size=kwargs["batchsize"],
+                                               batch_size=kwargs["batch_size"],
                                                shuffle=True,
                                                num_workers=2,
                                                pin_memory=True,
                                                worker_init_fn=worker_init_fn)
     valid_loader = torch.utils.data.DataLoader(validset,
-                                               batch_size=kwargs["batchsize"],
+                                               batch_size=kwargs["batch_size"],
                                                shuffle=False,
                                                num_workers=2,
                                                pin_memory=True,
                                                worker_init_fn=worker_init_fn)
     test_loader = torch.utils.data.DataLoader(testset,
-                                              batch_size=kwargs["batchsize"],
+                                              batch_size=kwargs["batch_size"],
                                               shuffle=False,
                                               num_workers=2,
                                               pin_memory=True,

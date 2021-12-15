@@ -71,10 +71,11 @@ class bp_net(net):
 
     def update_weights(self, y, y_pred, lr):
         loss = self.loss_function(y_pred, y)
+        batch_size = len(y)
         self.zero_grad()
         loss.backward()
         for d in range(self.depth):
-            self.layers[d].weight = (self.layers[d].weight - lr * 1 / len(y) *
+            self.layers[d].weight = (self.layers[d].weight - (lr / batch_size) *
                                      self.layers[d].weight.grad).detach().requires_grad_()
 
     def zero_grad(self):
