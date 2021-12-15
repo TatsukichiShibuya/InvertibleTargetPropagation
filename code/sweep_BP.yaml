@@ -10,7 +10,7 @@ parameters:
     distribution: int_uniform
   hid_dim:
     max: 1024
-    min: 512
+    min: 256
     distribution: int_uniform
   learning_rate:
     max: 1e-1
