@@ -123,7 +123,7 @@ class dttp_net(net):
                 h = self.layers[d].forward(self.layers[d].backward(q), update=False)
                 loss = self.MSELoss(h, q)
             else:
-                raise RuntimeError(f"cannot use refinement_type={refinement_type} in DTTP")
+                raise RuntimeError(f"cannot use b_loss={b_loss} in DTTP")
 
             if self.layers[d].backweight.grad is not None:
                 self.layers[d].backweight.grad.zero_()
