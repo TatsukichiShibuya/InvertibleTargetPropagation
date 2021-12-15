@@ -1,6 +1,7 @@
 from net import net
 from mytp_layer import mytp_layer
 
+import sys
 import time
 import wandb
 import torch
@@ -96,6 +97,9 @@ class mytp_net(net):
                 train_loss, train_acc = self.test(train_loader)
                 valid_loss, valid_acc = self.test(valid_loader)
                 rec_loss = self.reconstruction_loss_of_dataset(train_loader)
+                if torch.isnan(rec_loss).any():
+                    sys.exit(1)
+
                 if log:
                     log_dict = {"train loss": train_loss,
                                 "valid loss": valid_loss,
