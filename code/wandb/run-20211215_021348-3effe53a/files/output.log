@@ -1,1 +1,0 @@
-	test  : (tensor(0.6669, grad_fn=<DivBackward0>), 0.8039)
