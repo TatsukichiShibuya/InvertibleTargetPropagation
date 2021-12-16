@@ -81,6 +81,9 @@ class dttp_net(net):
                 train_loss, train_acc = self.test(train_loader)
                 valid_loss, valid_acc = self.test(valid_loader)
                 rec_loss = self.reconstruction_loss_of_dataset(train_loader)
+                if torch.isnan(rec_loss).any():
+                    sys.exit(1)
+
                 if log:
                     log_dict = {"train loss": train_loss,
                                 "valid loss": valid_loss,
@@ -106,6 +109,8 @@ class dttp_net(net):
                     for d in range(self.depth):
                         print(f"\tweight moving {d}: {float(weights_moving[d])}")
                     print(f"\ttarget error   : {float(target_error)}")
+                    print(f"\ttime           : {time.time() - start_time - monitor_time}")
+                    print(f"\tmonitor time   : {monitor_time}")
 
     def train_backweights(self, x, lrb, b_sigma, b_loss):
         self.forward(x)
