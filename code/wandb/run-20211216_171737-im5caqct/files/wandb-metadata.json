@@ -1,0 +1,29 @@
+{
+    "os": "Darwin-20.6.0-x86_64-i386-64bit",
+    "python": "3.7.4",
+    "heartbeatAt": "2021-12-16T08:17:41.484650",
+    "startedAt": "2021-12-16T08:17:37.803117",
+    "docker": null,
+    "cpu_count": 12,
+    "cuda": null,
+    "args": [
+        "--algorithm=BP",
+        "--batch_size=255",
+        "--hid_dim=638",
+        "--learning_rate=0.05581466570345029",
+        "--log",
+        "--agent"
+    ],
+    "state": "running",
+    "program": "Main.py",
+    "codePath": "code/Main.py",
+    "git": {
+        "remote": "https://github.com/TatsukichiShibuya/InvertibleTargetPropagation.git",
+        "commit": "e9aa5556fc0c016d63dc28e653ccc48e14e6f364"
+    },
+    "email": "tatsukichi78@gmail.com",
+    "root": "/Users/tatsukichi/InvertibleTargetPropagation",
+    "host": "MacBook-Pro.local",
+    "username": "tatsukichi",
+    "executable": "/opt/anaconda3/bin/python"
+}

@@ -32,7 +32,7 @@ class dttp_net(net):
     def train(self, train_loader, valid_loader, epochs, stepsize, lrb,
               b_epochs, b_sigma, refinement_iter, refinement_type, b_loss, log):
         # train backward network
-        for e in range(10):
+        for e in range(2):
             # train backward
             for x, y in train_loader:
                 x, y = x.to(self.device), y.to(self.device)

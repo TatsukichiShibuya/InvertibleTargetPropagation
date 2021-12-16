@@ -1,0 +1,8 @@
+wandb_version: 1
+
+batch_size:
+  value: 211
+hid_dim:
+  value: 823
+learning_rate:
+  value: 0.05686488817831155
