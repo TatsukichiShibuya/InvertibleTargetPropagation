@@ -34,7 +34,7 @@ parameters:
     min: 1e-5
     distribution: uniform
   refinement_iter:
-    max: 20
+    max: 25
     min: 0
     distribution: int_uniform
   refinement_type:
