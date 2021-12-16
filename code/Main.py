@@ -74,29 +74,30 @@ def main(**kwargs):
     print(f"DEVICE: {device}")
 
     if kwargs["log"]:
-        wandb.init(project="InvertibleTargetPropagation", entity="tatsukichishibuya")
+        #wandb.init(project="InvertibleTargetPropagation", entity="tatsukichishibuya")
         config = {"problem": kwargs["problem"] + "-" + str(kwargs["datasize"]),
                   "algorithm": kwargs["algorithm"],
                   "epochs": kwargs["epochs"],
-                  "batch_size": kwargs["batch_size"],
+                  # "batch_size": kwargs["batch_size"],
                   "seed": kwargs["seed"],
                   "depth": kwargs["depth"],
                   "in_dim": kwargs["in_dim"],
-                  "hid_dim": kwargs["hid_dim"],
+                  # "hid_dim": kwargs["hid_dim"],
                   "out_dim": kwargs["out_dim"],
                   "activation function": kwargs["activation_function"]}
         if kwargs["algorithm"] == "BP":
-            config["learning rate"] = kwargs["learning_rate"]
+            #config["learning rate"] = kwargs["learning_rate"]
+            pass
         elif kwargs["algorithm"] in ["DTTP", "MyTP"]:
-            config["stepsize"] = kwargs["stepsize"]
             config["direct depth"] = kwargs["direct_depth"]
-            config["learning rate (backward)"] = kwargs["learning_rate_for_backward"]
-            config["epochs (backward)"] = kwargs["b_epochs"]
-            config["sigma (backward)"] = kwargs["b_sigma"]
-            config["refinement iteration"] = kwargs["refinement_iter"]
-            config["refinement type"] = kwargs["refinement_type"]
-            config["loss (backward)"] = kwargs["b_loss"]
-        wandb.config.update(config)
+            #config["stepsize"] = kwargs["stepsize"]
+            #config["learning rate (backward)"] = kwargs["learning_rate_for_backward"]
+            #config["epochs (backward)"] = kwargs["b_epochs"]
+            #config["sigma (backward)"] = kwargs["b_sigma"]
+            #config["refinement iteration"] = kwargs["refinement_iter"]
+            #config["refinement type"] = kwargs["refinement_type"]
+            #config["loss (backward)"] = kwargs["b_loss"]
+        wandb.init(config=config)
 
     # make dataset
     if kwargs["problem"] == "regression":
