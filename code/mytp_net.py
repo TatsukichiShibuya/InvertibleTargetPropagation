@@ -30,17 +30,18 @@ class mytp_net(net):
 
         return layers
 
-    def train(self, train_loader, valid_loader, epochs, stepsize, lrb,
+    def train(self, train_loader, valid_loader, epochs, stepsize, lr_ratio, lrb,
               b_epochs, b_sigma, refinement_iter, refinement_type, b_loss, log):
+        if b_loss == "inv":
+            b_epochs = 1
+
         # train backward network
-        for e in range(10):
+        for e in range(5):
             # train backward
             for x, y in train_loader:
                 x, y = x.to(self.device), y.to(self.device)
                 for be in range(b_epochs):
                     self.train_backweights(x, lrb, b_sigma, b_loss)
-                    if b_loss == "inv":
-                        break
 
             # reconstruction loss
             print(f"epochs {e}: {self.reconstruction_loss_of_dataset(train_loader)}")
@@ -49,11 +50,11 @@ class mytp_net(net):
         for e in range(epochs):
             # monitor
             last_weights = [None] * self.depth
-            weights_moving = [0] * self.depth
-            target_error = 0
-            weights_condition = [[] for i in range(self.depth - self.direct_depth)]
-            start_time = time.time()
+            for d in range(self.depth):
+                last_weights[d] = self.layers[d].weight
+            target_err = []
             monitor_time = 0
+            start_time = time.time()
 
             # train forward
             for x, y in train_loader:
@@ -61,36 +62,27 @@ class mytp_net(net):
                 # train backward
                 for be in range(b_epochs):
                     self.train_backweights(x, lrb, b_sigma, b_loss)
-                    if b_loss == "inv":
-                        break
 
                 # compute target
                 self.compute_target(x, y, stepsize, refinement_iter, refinement_type)
 
+                ###### monitor start ######
                 monitor_start_time = time.time()
-                # compute condition numebers
-                for d in range(1, self.depth - self.direct_depth + 1):
-                    cond = 0
-                    try:
-                        cond = torch.linalg.cond(self.layers[d].weight).item()
-                        if cond == cond:
-                            weights_condition[d - 1].append(cond)
-                    except Exception as exception:
-                        pass
                 # compute target error
                 t = self.layers[0].target
                 for d in range(1, self.depth - self.direct_depth + 1):
                     t = self.layers[d].forward(t, update=False)
-                target_error += torch.norm(t - self.layers[self.depth - self.direct_depth].target)
+                err = self.MSELoss(t, self.layers[self.depth - self.direct_depth].target)
+                target_err.append(float(err) / len(t))
                 monitor_end_time = time.time()
                 monitor_time += monitor_end_time - monitor_start_time
+                ###### monitor end ######
 
                 # train forward
-                for d in range(self.depth):
-                    last_weights[d] = self.layers[d].weight
-                self.update_weights(x)
-                for d in range(self.depth):
-                    weights_moving[d] += torch.norm(last_weights[d] - self.layers[d].weight)
+                self.update_weights(x, lr_ratio)
+
+            end_time = time.time()
+            print(f"epochs {e}: {end_time - start_time - monitor_time:.2f}, {monitor_time:.2f}")
 
             # predict
             with torch.no_grad():
@@ -101,6 +93,7 @@ class mytp_net(net):
                     sys.exit(1)
 
                 if log:
+                    # results
                     log_dict = {"train loss": train_loss,
                                 "valid loss": valid_loss,
                                 "reconstruction loss": rec_loss}
@@ -108,15 +101,18 @@ class mytp_net(net):
                         log_dict["train accuracy"] = train_acc
                     if valid_acc is not None:
                         log_dict["valid accuracy"] = valid_acc
+                    log_dict["time"] = end_time - start_time - monitor_time
+
+                    # monitor
                     for d in range(self.depth):
-                        log_dict[f"weight moving {d}"] = float(weights_moving[d])
-                    for d in range(1, self.depth - self.direct_depth + 1):
-                        log_dict[f"condition {d}"] = np.mean(weights_condition[d - 1])
-                    log_dict["target error"] = float(target_error)
-                    log_dict["time"] = time.time() - start_time - monitor_time
+                        sub = self.MSELoss(self.layers[d].weight, last_weights[d])
+                        shape = self.layers[d].weight.shape
+                        log_dict[f"weight moving {d}"] = float(sub) / (shape[0] * shape[1])
+                    log_dict["target error"] = np.mean(target_err)
+
                     wandb.log(log_dict)
                 else:
-                    print(f"epochs {e}")
+                    # results
                     print(f"\ttrain loss     : {train_loss}")
                     print(f"\tvalid loss     : {valid_loss}")
                     if train_acc is not None:
@@ -124,13 +120,13 @@ class mytp_net(net):
                     if valid_acc is not None:
                         print(f"\tvalid acc      : {valid_acc}")
                     print(f"\trec loss       : {rec_loss}")
+
+                    # monitor
                     for d in range(self.depth):
-                        print(f"\tweight moving {d}: {float(weights_moving[d])}")
-                    for d in range(1, self.depth - self.direct_depth + 1):
-                        print(f"\tcondition {d}    : {np.mean(weights_condition[d-1])}")
-                    print(f"\ttarget error   : {float(target_error)}")
-                    print(f"\ttime           : {time.time() - start_time - monitor_time}")
-                    print(f"\tmonitor time   : {monitor_time}")
+                        sub = self.MSELoss(self.layers[d].weight, last_weights[d])
+                        shape = self.layers[d].weight.shape
+                        print(f"\tweight moving {d}: {float(sub) / (shape[0] * shape[1])}")
+                    print(f"\ttarget error   : {np.mean(target_err)}")
 
     def train_backweights(self, x, lrb, b_sigma, b_loss):
         self.forward(x)
@@ -139,18 +135,19 @@ class mytp_net(net):
                 inverse = torch.linalg.pinv(self.layers[d].weight).to(self.device)
                 self.layers[d].backweight = inverse.detach().requires_grad_()
             else:
+                batch_size = len(self.layers[d].linear_activation)
                 if b_loss == "gf":
                     # minimize |q-g(f(q))|^2
                     q = self.layers[d - 1].linear_activation.detach().clone()
                     q += torch.normal(0, b_sigma, size=q.shape, device=self.device)
                     h = self.layers[d].backward(self.layers[d].forward(q, update=False))
-                    loss = self.MSELoss(h, q)
+                    loss = self.MSELoss(h, q) / batch_size
                 elif b_loss == "fg":
                     # minimize |q-f(g(q))|^2
                     q = self.layers[d].linear_activation.detach().clone()
                     q += torch.normal(0, b_sigma, size=q.shape, device=self.device)
                     h = self.layers[d].forward(self.layers[d].backward(q), update=False)
-                    loss = self.MSELoss(h, q)
+                    loss = self.MSELoss(h, q) / batch_size
                 elif b_loss == "eye":
                     # minimize |I-WO|^2 + |I-OW|^2
                     eye = torch.eye(self.layers[d].weight.shape[0], device=self.device)
@@ -160,8 +157,8 @@ class mytp_net(net):
                 if self.layers[d].backweight.grad is not None:
                     self.layers[d].backweight.grad.zero_()
                 loss.backward()
-                batch_size = len(self.layers[d].linear_activation)
-                self.layers[d].backweight = (self.layers[d].backweight - (lrb / batch_size) *
+
+                self.layers[d].backweight = (self.layers[d].backweight - lrb *
                                              self.layers[d].backweight.grad).detach().requires_grad_()
 
     def compute_target(self, x, y, stepsize, refinement_iter, refinement_type):
@@ -196,7 +193,7 @@ class mytp_net(net):
                         u = 2 * self.layers[d + 1].target - fgt
                         self.layers[d].target = self.layers[d + 1].backward(u)
 
-    def update_weights(self, x):
+    def update_weights(self, x, lr_ratio):
         self.forward(x)
         D = self.direct_depth
         global_loss = ((self.layers[-D].target - self.layers[-D].linear_activation)**2).sum(axis=1)
@@ -206,7 +203,7 @@ class mytp_net(net):
             lr = (global_loss / (local_loss + 1e-12)).reshape(-1, 1) / batch_size
             n = self.layers[d].activation / \
                 (self.layers[d].activation**2).sum(axis=1).reshape(-1, 1)
-            grad = (self.layers[d].target - self.layers[d].linear_activation).T @ (n * lr)
+            grad = (self.layers[d].target - self.layers[d].linear_activation).T @ (n * lr**lr_ratio)
             if not (torch.isnan(grad).any() or torch.isinf(grad).any()
                     or torch.isnan(lr).any() or torch.isinf(lr).any()):
                 self.layers[d].weight = (self.layers[d].weight + grad).detach().requires_grad_()

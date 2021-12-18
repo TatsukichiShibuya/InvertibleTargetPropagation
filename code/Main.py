@@ -44,6 +44,7 @@ def get_args():
 
     # parameters used in DTTP and MyTP
     parser.add_argument("--stepsize",   type=float, default=2e-5)
+    parser.add_argument("--lr_ratio",   type=float, default=1)
     parser.add_argument("--b_epochs",   type=int, default=0)
     parser.add_argument("--b_sigma",    type=float, default=0.01)
     parser.add_argument("--b_loss",     type=str, default="gf",
@@ -104,12 +105,14 @@ def main(**kwargs):
             elif kwargs["algorithm"] in ["DTTP", "MyTP"]:
                 config["direct depth"] = kwargs["direct_depth"]
                 config["stepsize"] = kwargs["stepsize"]
+                config["lr ratio"] = kwargs["lr_ratio"]
                 config["learning rate (backward)"] = kwargs["learning_rate_for_backward"]
                 config["epochs (backward)"] = kwargs["b_epochs"]
                 config["sigma (backward)"] = kwargs["b_sigma"]
                 config["refinement iteration"] = kwargs["refinement_iter"]
-                config["refinement type"] = kwargs["refinement_type"]
-                config["loss (backward)"] = kwargs["b_loss"]
+                if kwargs["algorithm"] == "MyTP":
+                    config["refinement type"] = kwargs["refinement_type"]
+                    config["loss (backward)"] = kwargs["b_loss"]
             wandb.init(config=config)
 
     # make dataset
@@ -177,11 +180,11 @@ def main(**kwargs):
         model.train(train_loader, valid_loader, kwargs["epochs"], kwargs["learning_rate"],
                     log=kwargs["log"])
     elif kwargs["algorithm"] == "DTTP":
-        model.train(train_loader, valid_loader, kwargs["epochs"], kwargs["stepsize"],
+        model.train(train_loader, valid_loader, kwargs["epochs"], kwargs["stepsize"], kwargs["lr_ratio"],
                     kwargs["learning_rate_for_backward"], kwargs["b_epochs"], kwargs["b_sigma"],
-                    kwargs["refinement_iter"], kwargs["refinement_type"], kwargs["b_loss"], kwargs["log"])
+                    kwargs["refinement_iter"], kwargs["log"])
     elif kwargs["algorithm"] == "MyTP":
-        model.train(train_loader, valid_loader, kwargs["epochs"], kwargs["stepsize"],
+        model.train(train_loader, valid_loader, kwargs["epochs"], kwargs["stepsize"], kwargs["lr_ratio"],
                     kwargs["learning_rate_for_backward"], kwargs["b_epochs"], kwargs["b_sigma"],
                     kwargs["refinement_iter"], kwargs["refinement_type"], kwargs["b_loss"], kwargs["log"])
 

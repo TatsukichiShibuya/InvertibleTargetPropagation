@@ -1,4 +1,4 @@
-program: wrapper_DTTP.py
+program: wrapper_MyTP.py
 method: bayes
 metric:
   goal: minimize
@@ -18,8 +18,7 @@ parameters:
     distribution: uniform
   b_loss:
     values:
-      - fg
-      - gf
+      - inv
     distribution: categorical
   learning_rate_for_backward:
     max: 1e-1
@@ -31,7 +30,7 @@ parameters:
     distribution: int_uniform
   b_sigma:
     max: 1e-0
-    min: 1e-5
+    min: 1e-3
     distribution: uniform
   refinement_iter:
     max: 25
@@ -40,5 +39,4 @@ parameters:
   refinement_type:
     values:
       - fg
-      - gf
     distribution: categorical

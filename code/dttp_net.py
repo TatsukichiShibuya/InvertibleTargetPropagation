@@ -1,6 +1,7 @@
 from net import net
 from dttp_layer import dttp_layer
 
+import sys
 import time
 import wandb
 import torch
@@ -29,15 +30,14 @@ class dttp_net(net):
 
         return layers
 
-    def train(self, train_loader, valid_loader, epochs, stepsize, lrb,
-              b_epochs, b_sigma, refinement_iter, refinement_type, b_loss, log):
+    def train(self, train_loader, valid_loader, epochs, stepsize, lr_ratio, lrb, b_epochs, b_sigma, refinement_iter, log):
         # train backward network
-        for e in range(2):
+        for e in range(5):
             # train backward
             for x, y in train_loader:
                 x, y = x.to(self.device), y.to(self.device)
                 for be in range(b_epochs):
-                    self.train_backweights(x, lrb, b_sigma, b_loss)
+                    self.train_backweights(x, lrb, b_sigma)
 
             # reconstruction loss
             print(f"epochs {e}: {self.reconstruction_loss_of_dataset(train_loader)}")
@@ -46,8 +46,10 @@ class dttp_net(net):
         for e in range(epochs):
             # monitor
             last_weights = [None] * self.depth
-            weights_moving = [0] * self.depth
-            target_error = 0
+            for d in range(self.depth):
+                last_weights[d] = self.layers[d].weight
+            target_err = []
+            monitor_time = 0
             start_time = time.time()
 
             # train forward
@@ -55,26 +57,28 @@ class dttp_net(net):
                 x, y = x.to(self.device), y.to(self.device)
                 # train backward
                 for be in range(b_epochs):
-                    self.train_backweights(x, lrb, b_sigma, b_loss)
+                    self.train_backweights(x, lrb, b_sigma)
 
                 # compute target
-                self.compute_target(x, y, stepsize, refinement_iter, refinement_type)
+                self.compute_target(x, y, stepsize, refinement_iter)
 
+                ###### monitor start ######
                 monitor_start_time = time.time()
                 # compute target error
                 t = self.layers[0].target
                 for d in range(1, self.depth - self.direct_depth + 1):
                     t = self.layers[d].forward(t, update=False)
-                target_error += torch.norm(t - self.layers[self.depth - self.direct_depth].target)
+                err = self.MSELoss(t, self.layers[self.depth - self.direct_depth].target)
+                target_err.append(float(err) / len(t))
                 monitor_end_time = time.time()
-                monitor_time = monitor_end_time - monitor_start_time
+                monitor_time += monitor_end_time - monitor_start_time
+                ###### monitor end ######
 
                 # train forward
-                for d in range(self.depth):
-                    last_weights[d] = self.layers[d].weight
-                self.update_weights(x)
-                for d in range(self.depth):
-                    weights_moving[d] += torch.norm(last_weights[d] - self.layers[d].weight)
+                self.update_weights(x, lr_ratio)
+
+            end_time = time.time()
+            print(f"epochs {e}: {end_time - start_time - monitor_time:.2f}, {monitor_time:.2f}")
 
             # predict
             with torch.no_grad():
@@ -85,6 +89,7 @@ class dttp_net(net):
                     sys.exit(1)
 
                 if log:
+                    # results
                     log_dict = {"train loss": train_loss,
                                 "valid loss": valid_loss,
                                 "reconstruction loss": rec_loss}
@@ -92,13 +97,18 @@ class dttp_net(net):
                         log_dict["train accuracy"] = train_acc
                     if valid_acc is not None:
                         log_dict["valid accuracy"] = valid_acc
+                    log_dict["time"] = end_time - start_time - monitor_time
+
+                    # monitor
                     for d in range(self.depth):
-                        log_dict[f"weight moving {d}"] = float(weights_moving[d])
-                    log_dict["target error"] = float(target_error)
-                    log_dict["time"] = time.time() - start_time - monitor_time
+                        sub = self.MSELoss(self.layers[d].weight, last_weights[d])
+                        shape = self.layers[d].weight.shape
+                        log_dict[f"weight moving {d}"] = float(sub) / (shape[0] * shape[1])
+                    log_dict["target error"] = np.mean(target_err)
+
                     wandb.log(log_dict)
                 else:
-                    print(f"epochs {e}")
+                    # results
                     print(f"\ttrain loss     : {train_loss}")
                     print(f"\tvalid loss     : {valid_loss}")
                     if train_acc is not None:
@@ -106,38 +116,27 @@ class dttp_net(net):
                     if valid_acc is not None:
                         print(f"\tvalid acc      : {valid_acc}")
                     print(f"\trec loss       : {rec_loss}")
-                    for d in range(self.depth):
-                        print(f"\tweight moving {d}: {float(weights_moving[d])}")
-                    print(f"\ttarget error   : {float(target_error)}")
-                    print(f"\ttime           : {time.time() - start_time - monitor_time}")
-                    print(f"\tmonitor time   : {monitor_time}")
 
-    def train_backweights(self, x, lrb, b_sigma, b_loss):
+                    # monitor
+                    for d in range(self.depth):
+                        sub = self.MSELoss(self.layers[d].weight, last_weights[d])
+                        shape = self.layers[d].weight.shape
+                        print(f"\tweight moving {d}: {float(sub) / (shape[0] * shape[1])}")
+                    print(f"\ttarget error   : {np.mean(target_err)}")
+
+    def train_backweights(self, x, lrb, b_sigma):
         self.forward(x)
         for d in reversed(range(1, self.depth - self.direct_depth + 1)):
-            if b_loss == "gf":
-                # minimize |q-g(f(q))|^2
-                q = self.layers[d - 1].linear_activation.detach().clone()
-                q += torch.normal(0, b_sigma, size=q.shape, device=self.device)
-                h = self.layers[d].backward(self.layers[d].forward(q, update=False))
-                loss = self.MSELoss(h, q)
-            elif b_loss == "fg":
-                # minimize |q-f(g(q))|^2
-                q = self.layers[d].linear_activation.detach().clone()
-                q += torch.normal(0, b_sigma, size=q.shape, device=self.device)
-                h = self.layers[d].forward(self.layers[d].backward(q), update=False)
-                loss = self.MSELoss(h, q)
-            else:
-                raise RuntimeError(f"cannot use b_loss={b_loss} in DTTP")
-
-            if self.layers[d].backweight.grad is not None:
-                self.layers[d].backweight.grad.zero_()
-            loss.backward()
             batch_size = len(self.layers[d].linear_activation)
-            self.layers[d].backweight = (self.layers[d].backweight - (lrb / batch_size) *
-                                         self.layers[d].backweight.grad).detach().requires_grad_()
+            s = self.layers[d].activation_function(self.layers[d].linear_activation)
+            n = s / (s**2).sum(axis=1).reshape(-1, 1)
+            grad = (self.layers[d - 1].linear_activation -
+                    self.layers[d].backward(self.layers[d].linear_activation)).T @ (n * lrb / batch_size)
+            if not (torch.isnan(grad).any() or torch.isinf(grad).any()):
+                self.layers[d].backweight = (
+                    self.layers[d].backweight + grad).detach().requires_grad_()
 
-    def compute_target(self, x, y, stepsize, refinement_iter, refinement_type):
+    def compute_target(self, x, y, stepsize, refinement_iter):
         y_pred = self.forward(x)
 
         # initialize
@@ -153,22 +152,14 @@ class dttp_net(net):
             for d in reversed(range(self.depth - self.direct_depth)):
                 self.layers[d].target = self.layers[d + 1].backward(self.layers[d + 1].target)
 
-            if refinement_type == "gf":
-                for i in range(refinement_iter):
-                    for d in reversed(range(self.depth - self.direct_depth)):
-                        gt = self.layers[d + 1].backward(self.layers[d + 1].target)
-                        ft = self.layers[d + 1].forward(self.layers[d].target, update=False)
-                        gft = self.layers[d + 1].backward(ft)
-                        self.layers[d].target += gt - gft
-            elif refinement_type == "fg":
-                for i in range(refinement_iter):
-                    for d in reversed(range(self.depth - self.direct_depth)):
-                        gt = self.layers[d + 1].backward(self.layers[d + 1].target)
-                        fgt = self.layers[d + 1].forward(gt, update=False)
-                        u = 2 * self.layers[d + 1].target - fgt
-                        self.layers[d].target = self.layers[d + 1].backward(u)
+            for i in range(refinement_iter):
+                for d in reversed(range(self.depth - self.direct_depth)):
+                    gt = self.layers[d + 1].backward(self.layers[d + 1].target)
+                    ft = self.layers[d + 1].forward(self.layers[d].target, update=False)
+                    gft = self.layers[d + 1].backward(ft)
+                    self.layers[d].target += gt - gft
 
-    def update_weights(self, x):
+    def update_weights(self, x, lr_ratio):
         self.forward(x)
         D = self.direct_depth
         global_loss = ((self.layers[-D].target - self.layers[-D].linear_activation)**2).sum(axis=1)
