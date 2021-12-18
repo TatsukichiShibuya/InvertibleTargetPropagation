@@ -169,7 +169,7 @@ class dttp_net(net):
             lr = (global_loss / (local_loss + 1e-12)).reshape(-1, 1) / batch_size
             n = self.layers[d].activation / \
                 (self.layers[d].activation**2).sum(axis=1).reshape(-1, 1)
-            grad = (self.layers[d].target - self.layers[d].linear_activation).T @ (n * lr)
+            grad = (self.layers[d].target - self.layers[d].linear_activation).T @ (n * lr**lr_ratio)
             if not (torch.isnan(grad).any() or torch.isinf(grad).any()
                     or torch.isnan(lr).any() or torch.isinf(lr).any()):
                 self.layers[d].weight = (self.layers[d].weight + grad).detach().requires_grad_()
