@@ -1,1 +1,0 @@
-{"train loss": 0.0007934091263450682, "valid loss": 0.09216854721307755, "train accuracy": 1.0, "valid accuracy": 0.9809, "weight moving 0": 0.7036235928535461, "weight moving 1": 0.3773011863231659, "weight moving 2": 0.24009695649147034, "weight moving 3": 0.1379743367433548, "time": 3.936049222946167, "_runtime": 427, "_timestamp": 1639639843, "_step": 99}
