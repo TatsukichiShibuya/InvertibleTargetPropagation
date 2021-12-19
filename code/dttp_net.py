@@ -127,11 +127,10 @@ class dttp_net(net):
     def train_backweights(self, x, lrb, b_sigma):
         self.forward(x)
         for d in reversed(range(1, self.depth - self.direct_depth + 1)):
-            batch_size = len(self.layers[d].linear_activation)
             s = self.layers[d].activation_function(self.layers[d].linear_activation)
             n = s / (s**2).sum(axis=1).reshape(-1, 1)
             grad = (self.layers[d - 1].linear_activation -
-                    self.layers[d].backward(self.layers[d].linear_activation)).T @ (n * lrb / batch_size)
+                    self.layers[d].backward(self.layers[d].linear_activation)).T @ (n * lrb)
             if not (torch.isnan(grad).any() or torch.isinf(grad).any()):
                 self.layers[d].backweight = (
                     self.layers[d].backweight + grad).detach().requires_grad_()
@@ -165,14 +164,36 @@ class dttp_net(net):
         global_loss = ((self.layers[-D].target - self.layers[-D].linear_activation)**2).sum(axis=1)
         for d in range(self.depth):
             local_loss = ((self.layers[d].target - self.layers[d].linear_activation)**2).sum(axis=1)
-            batch_size = len(self.layers[d].target)
-            lr = (global_loss / (local_loss + 1e-12)).reshape(-1, 1) / batch_size
+            lr = (global_loss / (local_loss + 1e-12)).reshape(-1, 1)
             n = self.layers[d].activation / \
                 (self.layers[d].activation**2).sum(axis=1).reshape(-1, 1)
             grad = (self.layers[d].target - self.layers[d].linear_activation).T @ (n * lr**lr_ratio)
             if not (torch.isnan(grad).any() or torch.isinf(grad).any()
                     or torch.isnan(lr).any() or torch.isinf(lr).any()):
-                self.layers[d].weight = (self.layers[d].weight + grad).detach().requires_grad_()
+                self.layers[d].weight = (self.layers[d].weight +
+                                         grad).detach().requires_grad_()
+
+    def update_weights2(self, x, lr_ratio):
+        self.forward(x)
+        D = self.direct_depth
+        grad_global = 0
+        for d in reversed(range(self.depth)):
+            batch_size = len(self.layers[d].target)
+            lr = torch.tensor(1)
+            n = self.layers[d].activation / \
+                (self.layers[d].activation**2).sum(axis=1).reshape(-1, 1)
+            grad = (self.layers[d].target - self.layers[d].linear_activation).T @ (n * lr)
+            if d == D - 1:
+                shape = self.layers[d].weight.shape
+                grad_global = torch.norm(grad)**2 / (shape[0] * shape[1])
+            else:
+                shape = self.layers[d].weight.shape
+                grad = grad * (grad_global / (torch.norm(grad)**2 / (shape[0] * shape[1])))**(1 / 2)
+
+            if not (torch.isnan(grad).any() or torch.isinf(grad).any()
+                    or torch.isnan(lr).any() or torch.isinf(lr).any()):
+                self.layers[d].weight = (self.layers[d].weight +
+                                         grad).detach().requires_grad_()
 
     def reconstruction_loss(self, x):
         h1 = self.layers[0].forward(x, update=False)

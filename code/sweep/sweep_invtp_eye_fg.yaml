@@ -13,8 +13,8 @@ parameters:
     min: 256
     distribution: int_uniform
   stepsize:
-    max: 1e-1
-    min: 1e-4
+    max: 5e-1
+    min: 1e-3
     distribution: uniform
   b_loss:
     values:
