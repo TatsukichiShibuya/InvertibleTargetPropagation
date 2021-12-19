@@ -173,7 +173,7 @@ class dttp_net(net):
                 self.layers[d].weight = (self.layers[d].weight +
                                          grad).detach().requires_grad_()
 
-    def update_weights2(self, x, lr_ratio):
+    def update_weights2(self, x):
         self.forward(x)
         D = self.direct_depth
         grad_global = 0

@@ -141,13 +141,13 @@ class mytp_net(net):
                     q = self.layers[d - 1].linear_activation.detach().clone()
                     q += torch.normal(0, b_sigma, size=q.shape, device=self.device)
                     h = self.layers[d].backward(self.layers[d].forward(q, update=False))
-                    loss = self.MSELoss(h, q) / batch_size
+                    loss = self.MSELoss(h, q)
                 elif b_loss == "fg":
                     # minimize |q-f(g(q))|^2
                     q = self.layers[d].linear_activation.detach().clone()
                     q += torch.normal(0, b_sigma, size=q.shape, device=self.device)
                     h = self.layers[d].forward(self.layers[d].backward(q), update=False)
-                    loss = self.MSELoss(h, q) / batch_size
+                    loss = self.MSELoss(h, q)
                 elif b_loss == "eye":
                     # minimize |I-WO|^2 + |I-OW|^2
                     eye = torch.eye(self.layers[d].weight.shape[0], device=self.device)
@@ -207,7 +207,7 @@ class mytp_net(net):
                     or torch.isnan(lr).any() or torch.isinf(lr).any()):
                 self.layers[d].weight = (self.layers[d].weight + grad).detach().requires_grad_()
 
-    def update_weights2(self, x, lr_ratio):
+    def update_weights2(self, x):
         self.forward(x)
         D = self.direct_depth
         grad_global = 0
