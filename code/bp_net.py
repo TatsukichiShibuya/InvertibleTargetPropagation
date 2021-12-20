@@ -79,7 +79,8 @@ class bp_net(net):
                         sub = self.MSELoss(self.layers[d].weight, last_weights[d])
                         shape = self.layers[d].weight.shape
                         print(f"\tweight moving {d}: {float(sub) / (shape[0] * shape[1])}")
-                    print(torch.linalg.cond(self.layers[d].weight))
+                    for d in range(self.depth):
+                        print(f"\tcond {d}: {torch.linalg.cond(self.layers[d].weight)}")
 
     def update_weights(self, y, y_pred, lr):
         loss = self.loss_function(y_pred, y)
