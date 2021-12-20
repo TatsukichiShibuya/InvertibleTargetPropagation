@@ -202,15 +202,13 @@ class mytp_net(net):
             elif refinement_type == "fg":
                 for d in reversed(range(self.depth - self.direct_depth)):
                     u = self.layers[d + 1].target
-                    print(f"target {d}", torch.norm(u, dim=1)[0])
                     for i in range(refinement_iter):
                         gt = self.layers[d + 1].backward(u)
                         fgt = self.layers[d + 1].forward(gt, update=False)
                         delta = self.layers[d + 1].target - fgt
                         u = u + delta
-                    print(f"target {d}", torch.norm(u, dim=1)[0])
-                    print(f"delta {d}", torch.norm(delta, dim=1).max())
                     self.layers[d].target = self.layers[d + 1].backward(u)
+                    print(f"delta {d}", torch.norm(delta, dim=1).max())
                 """for i in range(refinement_iter):
                     for d in reversed(range(self.depth - self.direct_depth)):
                         gt = self.layers[d + 1].backward(self.layers[d + 1].target)
@@ -223,7 +221,8 @@ class mytp_net(net):
         D = self.depth - self.direct_depth
         global_loss = ((self.layers[D].target - self.layers[D].linear_activation)**2).sum(axis=1)
         grad_base = 0
-        for d in reversed(range(self.depth)):
+        # for d in reversed(range(self.depth)):
+        for d in reversed(range(self.depth - self.direct_depth)):
             # compute grad
             local_loss = ((self.layers[d].target - self.layers[d].linear_activation)**2).sum(axis=1)
             lr = (global_loss / (local_loss + 1e-12)).reshape(-1, 1) if d < D else torch.tensor(1)
