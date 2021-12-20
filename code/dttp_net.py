@@ -109,8 +109,8 @@ class dttp_net(net):
                         sub = self.MSELoss(self.layers[d].weight, last_weights[d])
                         shape = self.layers[d].weight.shape
                         log_dict[f"weight moving {d}"] = float(sub) / (shape[0] * shape[1])
-                    log_dict["target error dist"] = torch.mean(target_dist)
-                    log_dict["target error angle"] = torch.mean(target_angle)
+                    log_dict["target error dist"] = torch.mean(torch.tensor(target_dist))
+                    log_dict["target error angle"] = torch.mean(torch.tensor(target_angle))
 
                     wandb.log(log_dict)
                 else:
@@ -128,8 +128,8 @@ class dttp_net(net):
                         sub = self.MSELoss(self.layers[d].weight, last_weights[d])
                         shape = self.layers[d].weight.shape
                         print(f"\tweight moving {d}: {float(sub) / (shape[0] * shape[1])}")
-                    print(f"\ttarget err dist : {torch.mean(target_dist)}")
-                    print(f"\ttarget err angle: {torch.mean(target_angle)}")
+                    print(f"\ttarget err dist : {torch.mean(torch.tensor(target_dist))}")
+                    print(f"\ttarget err angle: {torch.mean(torch.tensor(target_angle))}")
 
     def train_backweights(self, x, lrb, b_sigma):
         self.forward(x)
