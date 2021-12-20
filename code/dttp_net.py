@@ -33,7 +33,7 @@ class dttp_net(net):
     def train(self, train_loader, valid_loader, epochs, stepsize, lr_ratio, lrb, scaling,
               b_epochs, b_sigma, refinement_iter, log):
         # train backward network
-        for e in range(5):
+        for e in range(20):
             # train backward
             for x, y in train_loader:
                 x, y = x.to(self.device), y.to(self.device)
@@ -55,6 +55,7 @@ class dttp_net(net):
             start_time = time.time()
             stepsize = max(stepsize_base / (e / 10 + 1)**0.5, stepsize / 5)
 
+            stepsize_base = stepsize
             # train forward
             for x, y in train_loader:
                 x, y = x.to(self.device), y.to(self.device)
