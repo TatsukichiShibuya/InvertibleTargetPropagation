@@ -78,14 +78,13 @@ class mytp_net(net):
                 v1, v2, v3 = t - h, t_ - h, t - t_
                 target_angle.append(calc_angle(v1, v2).mean())
                 target_dist.append((torch.norm(v3, dim=1) / (torch.norm(v2, dim=1) + 1e-12)).mean())
-                """
+
                 eig1, _ = torch.linalg.eig(self.layers[1].weight @ self.layers[1].backweight -
                                            torch.eye(self.layers[1].weight.shape[0], device=self.device))
                 eig2, _ = torch.linalg.eig(self.layers[2].weight @ self.layers[2].backweight -
                                            torch.eye(self.layers[2].weight.shape[0], device=self.device))
                 print(eig1.real.max())
                 print(eig2.real.max())
-                """
 
                 monitor_end_time = time.time()
                 monitor_time += monitor_end_time - monitor_start_time
@@ -210,7 +209,7 @@ class mytp_net(net):
                         delta = self.layers[d + 1].target - fgt
                         u = u + delta
                     self.layers[d].target = self.layers[d + 1].backward(u)
-                    #print(f"delta {d}", torch.norm(delta, dim=1).max())
+                    print(f"delta {d}", torch.norm(delta, dim=1).max())
                 """for i in range(refinement_iter):
                     for d in reversed(range(self.depth - self.direct_depth)):
                         gt = self.layers[d + 1].backward(self.layers[d + 1].target)
