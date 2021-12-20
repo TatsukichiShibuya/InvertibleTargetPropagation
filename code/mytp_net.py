@@ -104,6 +104,8 @@ class mytp_net(net):
                 valid_loss, valid_acc = self.test(valid_loader)
                 rec_loss = self.reconstruction_loss_of_dataset(train_loader)
                 if torch.isnan(rec_loss).any():
+                    import pdb
+                    pdb.set_trace()
                     sys.exit(1)
 
                 if log:
