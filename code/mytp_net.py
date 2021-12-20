@@ -46,7 +46,6 @@ class mytp_net(net):
                 # reconstruction loss
                 print(f"epochs {e}: {self.reconstruction_loss_of_dataset(train_loader)}")
 
-        stepsize_base = stepsize
         # train forward network
         for e in range(epochs):
             # monitor
@@ -57,7 +56,6 @@ class mytp_net(net):
             target_angle = []
             monitor_time = 0
             start_time = time.time()
-            stepsize = max(stepsize_base / (e / 10 + 1)**0.5, stepsize / 5)
 
             # train forward
             for x, y in train_loader:
@@ -80,14 +78,12 @@ class mytp_net(net):
                 v1, v2, v3 = t - h, t_ - h, t - t_
                 target_angle.append(calc_angle(v1, v2).mean())
                 target_dist.append((torch.norm(v3, dim=1) / (torch.norm(v2, dim=1) + 1e-30)).mean())
-
                 """eig1, _ = torch.linalg.eig(self.layers[1].weight @ self.layers[1].backweight -
                                            torch.eye(self.layers[1].weight.shape[0], device=self.device))
                 eig2, _ = torch.linalg.eig(self.layers[2].weight @ self.layers[2].backweight -
                                            torch.eye(self.layers[2].weight.shape[0], device=self.device))
                 print(eig1.real.max())
                 print(eig2.real.max())"""
-
                 monitor_end_time = time.time()
                 monitor_time += monitor_end_time - monitor_start_time
                 ###### monitor end ######
@@ -211,7 +207,6 @@ class mytp_net(net):
                         delta = self.layers[d + 1].target - fgt
                         u = u + delta
                     self.layers[d].target = self.layers[d + 1].backward(u)
-                    # print(f"delta {d}", torch.norm(delta, dim=1).max())
 
     def update_weights(self, x, lr_ratio, scaling=False):
         self.forward(x)

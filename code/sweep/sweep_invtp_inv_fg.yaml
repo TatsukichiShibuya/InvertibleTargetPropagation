@@ -14,7 +14,7 @@ parameters:
     distribution: int_uniform
   stepsize:
     max: 1e-1
-    min: 1e-4
+    min: 1e-3
     distribution: uniform
   b_loss:
     values:
@@ -22,21 +22,24 @@ parameters:
     distribution: categorical
   learning_rate_for_backward:
     max: 1e-1
-    min: 1e-4
+    min: 1e-3
     distribution: uniform
   b_epochs:
-    max: 10
-    min: 1
+    max: 20
+    min: 5
     distribution: int_uniform
   b_sigma:
     max: 1e-0
-    min: 1e-3
+    min: 1e-2
     distribution: uniform
   refinement_iter:
-    max: 25
-    min: 0
+    max: 500
+    min: 10
     distribution: int_uniform
   refinement_type:
     values:
       - fg
     distribution: categorical
+  datasize:
+    values:
+      - 7000

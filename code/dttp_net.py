@@ -43,7 +43,6 @@ class dttp_net(net):
             # reconstruction loss
             print(f"epochs {e}: {self.reconstruction_loss_of_dataset(train_loader)}")
 
-        stepsize_base = stepsize
         # train forward network
         for e in range(epochs):
             # monitor
@@ -54,7 +53,6 @@ class dttp_net(net):
             target_angle = []
             monitor_time = 0
             start_time = time.time()
-            stepsize = max(stepsize_base / (e / 10 + 1)**0.5, stepsize / 5)
 
             # train forward
             for x, y in train_loader:
@@ -172,7 +170,7 @@ class dttp_net(net):
         D = self.depth - self.direct_depth
         global_loss = ((self.layers[D].target - self.layers[D].linear_activation)**2).sum(axis=1)
         grad_base = 0
-        for d in reversed(range(self.depth - self.direct_depth)):
+        for d in reversed(range(self.depth)):
             # compute grad
             local_loss = ((self.layers[d].target - self.layers[d].linear_activation)**2).sum(axis=1)
             lr = (global_loss / (local_loss + 1e-30)).reshape(-1, 1) if d < D else torch.tensor(1)
