@@ -46,6 +46,7 @@ class mytp_net(net):
             # reconstruction loss
             print(f"epochs {e}: {self.reconstruction_loss_of_dataset(train_loader)}")
 
+        stepsize_base = stepsize
         # train forward network
         for e in range(epochs):
             # monitor
@@ -56,6 +57,7 @@ class mytp_net(net):
             target_angle = []
             monitor_time = 0
             start_time = time.time()
+            stepsize = stepsize_base**(1 + e / 10.)
 
             # train forward
             for x, y in train_loader:
