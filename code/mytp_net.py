@@ -57,7 +57,7 @@ class mytp_net(net):
             target_angle = []
             monitor_time = 0
             start_time = time.time()
-            stepsize = stepsize_base**(1 + e / 10.)
+            stepsize = stepsize_base / (e + 1)**0.5
 
             # train forward
             for x, y in train_loader:
