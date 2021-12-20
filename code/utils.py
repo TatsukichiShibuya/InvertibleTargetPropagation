@@ -2,6 +2,7 @@ import numpy as np
 import torch
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+import math
 
 
 def calc_accuracy(pred, label):
@@ -41,6 +42,6 @@ def worker_init_fn(worker_id):
 def calc_angle(v1, v2):
     cos = (v1 * v2).sum(axis=1) / (torch.norm(v1, dim=1) * torch.norm(v2, dim=1) + 1e-12)
     cos = torch.clamp(cos, min=-1, max=1)
-    acos = torch.acos(cos) * 180 / torch.pi
+    acos = torch.acos(cos) * 180 / math.pi
     angle = 180 - torch.abs(acos - 180)
     return angle
