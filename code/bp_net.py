@@ -88,10 +88,8 @@ class bp_net(net):
         self.zero_grad()
         loss.backward()
         for d in range(self.depth):
-            grad = self.layers[d].weight.grad
             self.layers[d].weight = (self.layers[d].weight - (lr / batch_size)
-                                     * grad).detach().requires_grad_()
-            print(f"grad {d}", torch.linalg.cond(grad))
+                                     * self.layers[d].weight.grad).detach().requires_grad_()
 
     def zero_grad(self):
         for d in range(self.depth):

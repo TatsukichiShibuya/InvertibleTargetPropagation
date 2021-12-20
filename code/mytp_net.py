@@ -239,7 +239,6 @@ class mytp_net(net):
                 elif d < D:
                     grad = grad * (grad_base / (torch.norm(grad) ** 2 / (shape[0] * shape[1])))**0.5
 
-            print(f"grad {d}", torch.linalg.cond(grad))
             # update weight
             if not (torch.isnan(grad).any() or torch.isinf(grad).any()
                     or torch.isnan(lr).any() or torch.isinf(lr).any()):
