@@ -200,12 +200,19 @@ class mytp_net(net):
                         gft = self.layers[d + 1].backward(ft)
                         self.layers[d].target += gt - gft
             elif refinement_type == "fg":
-                for i in range(refinement_iter):
+                for d in reversed(range(self.depth - self.direct_depth)):
+                    u = self.layers[d + 1].target
+                    for i in range(refinement_iter):
+                        gt = self.layers[d + 1].backward(u)
+                        fgt = self.layers[d + 1].forward(gt, update=False)
+                        u = u + self.layers[d + 1].target - fgt
+                    self.layers[d].target = self.layers[d + 1].backward(u)
+                """for i in range(refinement_iter):
                     for d in reversed(range(self.depth - self.direct_depth)):
                         gt = self.layers[d + 1].backward(self.layers[d + 1].target)
                         fgt = self.layers[d + 1].forward(gt, update=False)
                         u = 2 * self.layers[d + 1].target - fgt
-                        self.layers[d].target = self.layers[d + 1].backward(u)
+                        self.layers[d].target = self.layers[d + 1].backward(u)"""
 
     def update_weights(self, x, lr_ratio, scaling=False):
         self.forward(x)
