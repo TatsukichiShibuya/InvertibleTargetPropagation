@@ -103,7 +103,7 @@ class mytp_net(net):
                 train_loss, train_acc = self.test(train_loader)
                 valid_loss, valid_acc = self.test(valid_loader)
                 rec_loss = self.reconstruction_loss_of_dataset(train_loader)
-                if torch.isnan(rec_loss).any():
+                if torch.isnan(rec_loss).any() or (rec_loss > 1e5).any():
                     import pdb
                     pdb.set_trace()
                     sys.exit(1)
