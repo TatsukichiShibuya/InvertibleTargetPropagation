@@ -53,6 +53,7 @@ class dttp_net(net):
             target_angle = []
             monitor_time = 0
             start_time = time.time()
+            stepsize = max(stepsize_base / (e / 10 + 1)**0.5, stepsize / 5)
 
             # train forward
             for x, y in train_loader:
