@@ -45,6 +45,7 @@ def get_args():
     # parameters used in DTTP and MyTP
     parser.add_argument("--stepsize",   type=float, default=2e-5)
     parser.add_argument("--lr_ratio",   type=float, default=1)
+    parser.add_argument("--weight_scaling", action="store_true")
     parser.add_argument("--b_epochs",   type=int, default=0)
     parser.add_argument("--b_sigma",    type=float, default=0.01)
     parser.add_argument("--b_loss",     type=str, default="gf",
@@ -181,11 +182,11 @@ def main(**kwargs):
                     log=kwargs["log"])
     elif kwargs["algorithm"] == "DTTP":
         model.train(train_loader, valid_loader, kwargs["epochs"], kwargs["stepsize"], kwargs["lr_ratio"],
-                    kwargs["learning_rate_for_backward"], kwargs["b_epochs"], kwargs["b_sigma"],
+                    kwargs["learning_rate_for_backward"], kwargs["weight_scaling"], kwargs["b_epochs"], kwargs["b_sigma"],
                     kwargs["refinement_iter"], kwargs["log"])
     elif kwargs["algorithm"] == "MyTP":
         model.train(train_loader, valid_loader, kwargs["epochs"], kwargs["stepsize"], kwargs["lr_ratio"],
-                    kwargs["learning_rate_for_backward"], kwargs["b_epochs"], kwargs["b_sigma"],
+                    kwargs["learning_rate_for_backward"], kwargs["weight_scaling"], kwargs["b_epochs"], kwargs["b_sigma"],
                     kwargs["refinement_iter"], kwargs["refinement_type"], kwargs["b_loss"], kwargs["log"])
 
     # test

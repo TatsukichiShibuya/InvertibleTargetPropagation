@@ -1,4 +1,4 @@
-from utils import calc_accuracy
+from utils import calc_accuracy, calc_angle
 
 from abc import ABCMeta, abstractmethod
 from torch import nn
@@ -14,6 +14,7 @@ class net(metaclass=ABCMeta):
                                        kwargs["out_dim"],
                                        kwargs["activation_function"])
         self.loss_function = kwargs["loss_function"]
+        self.MSELoss = nn.MSELoss(reduction="sum")
 
     def forward(self, x, update=True):
         y = x

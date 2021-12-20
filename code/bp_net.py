@@ -29,7 +29,8 @@ class bp_net(net):
         for e in range(epochs):
             # monitor
             last_weights = [None] * self.depth
-            weights_moving = [0] * self.depth
+            for d in range(self.depth):
+                last_weights[d] = self.layers[d].weight
             start_time = time.time()
 
             # train forward
@@ -37,37 +38,48 @@ class bp_net(net):
                 x, y = x.to(self.device), y.to(self.device)
                 y_pred = self.forward(x)
 
-                for d in range(self.depth):
-                    last_weights[d] = self.layers[d].weight
                 self.update_weights(y, y_pred, lr)
-                for d in range(self.depth):
-                    weights_moving[d] += torch.norm(last_weights[d] - self.layers[d].weight)
+
+            end_time = time.time()
+            print(f"epochs {e}: {end_time - start_time:.2f}")
 
             # predict
             with torch.no_grad():
                 train_loss, train_acc = self.test(train_loader)
                 valid_loss, valid_acc = self.test(valid_loader)
+
                 if log:
+                    # results
                     log_dict = {"train loss": train_loss,
                                 "valid loss": valid_loss}
                     if train_acc is not None:
                         log_dict["train accuracy"] = train_acc
                     if valid_acc is not None:
                         log_dict["valid accuracy"] = valid_acc
+                    log_dict["time"] = end_time - start_time
+
+                    # monitor
                     for d in range(self.depth):
-                        log_dict[f"weight moving {d}"] = float(weights_moving[d])
-                    log_dict["time"] = time.time() - start_time
+                        sub = self.MSELoss(self.layers[d].weight, last_weights[d])
+                        shape = self.layers[d].weight.shape
+                        log_dict[f"weight moving {d}"] = float(sub) / (shape[0] * shape[1])
+
                     wandb.log(log_dict)
                 else:
-                    print(f"epochs {e}")
+                    # results
                     print(f"\ttrain loss     : {train_loss}")
                     print(f"\tvalid loss     : {valid_loss}")
                     if train_acc is not None:
                         print(f"\ttrain acc      : {train_acc}")
                     if valid_acc is not None:
                         print(f"\tvalid acc      : {valid_acc}")
+
+                    # monitor
                     for d in range(self.depth):
-                        print(f"\tweight moving {d}: {float(weights_moving[d])}")
+                        sub = self.MSELoss(self.layers[d].weight, last_weights[d])
+                        shape = self.layers[d].weight.shape
+                        print(f"\tweight moving {d}: {float(sub) / (shape[0] * shape[1])}")
+                    print(torch.linalg.cond(self.layers[d].weight))
 
     def update_weights(self, y, y_pred, lr):
         loss = self.loss_function(y_pred, y)
