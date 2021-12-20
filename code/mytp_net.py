@@ -205,7 +205,9 @@ class mytp_net(net):
                     for i in range(refinement_iter):
                         gt = self.layers[d + 1].backward(u)
                         fgt = self.layers[d + 1].forward(gt, update=False)
-                        u = u + self.layers[d + 1].target - fgt
+                        delta = self.layers[d + 1].target - fgt
+                        u = u + delta
+                    print(f"delta {d}", torch.norm(delta, dim=1).max())
                     self.layers[d].target = self.layers[d + 1].backward(u)
                 """for i in range(refinement_iter):
                     for d in reversed(range(self.depth - self.direct_depth)):
