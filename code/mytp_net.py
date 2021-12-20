@@ -214,6 +214,9 @@ class mytp_net(net):
                         u = u + delta
                     self.layers[d].target = self.layers[d + 1].backward(u)
                     print(f"delta {d}", torch.norm(delta, dim=1).max())
+                    if torch.norm(delta, dim=1).max() > 0.1:
+                        import pdb
+                        pdb.set_trace()
 
     def update_weights(self, x, lr_ratio, scaling=False):
         self.forward(x)
