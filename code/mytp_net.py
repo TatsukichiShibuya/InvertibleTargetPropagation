@@ -34,17 +34,17 @@ class mytp_net(net):
               b_epochs, b_sigma, refinement_iter, refinement_type, b_loss, log):
         if b_loss == "inv":
             b_epochs = 1
+        else:
+            # train backward network
+            for e in range(1):
+                # train backward
+                for x, y in train_loader:
+                    x, y = x.to(self.device), y.to(self.device)
+                    for be in range(b_epochs):
+                        self.train_backweights(x, lrb, b_sigma, b_loss)
 
-        # train backward network
-        for e in range(1):
-            # train backward
-            for x, y in train_loader:
-                x, y = x.to(self.device), y.to(self.device)
-                for be in range(b_epochs):
-                    self.train_backweights(x, lrb, b_sigma, b_loss)
-
-            # reconstruction loss
-            print(f"epochs {e}: {self.reconstruction_loss_of_dataset(train_loader)}")
+                # reconstruction loss
+                print(f"epochs {e}: {self.reconstruction_loss_of_dataset(train_loader)}")
 
         stepsize_base = stepsize
         # train forward network
@@ -57,7 +57,7 @@ class mytp_net(net):
             target_angle = []
             monitor_time = 0
             start_time = time.time()
-            stepsize = stepsize_base / (e + 1)**0.5
+            stepsize = max(stepsize_base / (e / 2 + 1)**0.5, stepsize / 10)
 
             # train forward
             for x, y in train_loader:
@@ -214,20 +214,13 @@ class mytp_net(net):
                         u = u + delta
                     self.layers[d].target = self.layers[d + 1].backward(u)
                     print(f"delta {d}", torch.norm(delta, dim=1).max())
-                """for i in range(refinement_iter):
-                    for d in reversed(range(self.depth - self.direct_depth)):
-                        gt = self.layers[d + 1].backward(self.layers[d + 1].target)
-                        fgt = self.layers[d + 1].forward(gt, update=False)
-                        u = 2 * self.layers[d + 1].target - fgt
-                        self.layers[d].target = self.layers[d + 1].backward(u)"""
 
     def update_weights(self, x, lr_ratio, scaling=False):
         self.forward(x)
         D = self.depth - self.direct_depth
         global_loss = ((self.layers[D].target - self.layers[D].linear_activation)**2).sum(axis=1)
         grad_base = 0
-        # for d in reversed(range(self.depth)):
-        for d in reversed(range(self.depth - self.direct_depth)):
+        for d in reversed(range(self.depth)):
             # compute grad
             local_loss = ((self.layers[d].target - self.layers[d].linear_activation)**2).sum(axis=1)
             lr = (global_loss / (local_loss + 1e-12)).reshape(-1, 1) if d < D else torch.tensor(1)
