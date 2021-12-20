@@ -8,8 +8,7 @@ class mytp_layer:
         self.invertible = False
 
         # weights
-        self.weight = torch.empty(out_dim, in_dim, requires_grad=True,
-                                  device=device, dtype=torch.double)
+        self.weight = torch.empty(out_dim, in_dim, requires_grad=True, device=device)
         nn.init.orthogonal_(self.weight)
 
         self.backweight = self.weight.T.detach().clone().requires_grad_()
