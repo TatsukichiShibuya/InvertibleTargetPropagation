@@ -142,7 +142,8 @@ class mytp_net(net):
                         print(f"\tweight moving {d}: {float(sub) / (shape[0] * shape[1])}")
                     print(f"\ttarget err dist : {torch.mean(torch.tensor(target_dist))}")
                     print(f"\ttarget err angle: {torch.mean(torch.tensor(target_angle))}")
-                    print(torch.linalg.cond(self.layers[d].weight))
+                    for d in range(self.depth - self.direct_depth):
+                        print(f"\tcond {d}: {torch.linalg.cond(self.layers[d].weight)}")
 
     def train_backweights(self, x, lrb, b_sigma, b_loss):
         self.forward(x)
