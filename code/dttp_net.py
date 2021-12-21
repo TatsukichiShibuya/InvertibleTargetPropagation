@@ -49,8 +49,8 @@ class dttp_net(net):
             last_weights = [None] * self.depth
             for d in range(self.depth):
                 last_weights[d] = self.layers[d].weight
-            target_dist = []
-            target_angle = []
+            target_dist = [[] for d in range(self.depth - self.direct_depth)]
+            target_angle = [[] for d in range(self.depth - self.direct_depth)]
             monitor_time = 0
             start_time = time.time()
 
@@ -67,14 +67,16 @@ class dttp_net(net):
                 ###### monitor start ######
                 monitor_start_time = time.time()
                 # compute target error
-                t = self.layers[0].target
-                for d in range(1, self.depth - self.direct_depth + 1):
-                    t = self.layers[d].forward(t, update=False)
-                h = self.layers[self.depth - self.direct_depth].linear_activation
-                t_ = self.layers[self.depth - self.direct_depth].target
-                v1, v2, v3 = t - h, t_ - h, t - t_
-                target_angle.append(calc_angle(v1, v2).mean())
-                target_dist.append((torch.norm(v3, dim=1) / (torch.norm(v2, dim=1) + 1e-30)).mean())
+                for d in range(self.depth - self.direct_depth):
+                    t = self.layers[d].target
+                    for _d in range(d + 1, self.depth - self.direct_depth + 1):
+                        t = self.layers[_d].forward(t, update=False)
+                    h = self.layers[self.depth - self.direct_depth].linear_activation
+                    t_ = self.layers[self.depth - self.direct_depth].target
+                    v1, v2, v3 = t - h, t_ - h, t - t_
+                    target_angle[d].append(calc_angle(v1, v2).mean())
+                    target_dist[d].append(
+                        (torch.norm(v3, dim=1) / (torch.norm(v2, dim=1) + 1e-30)).mean())
                 monitor_end_time = time.time()
                 monitor_time += monitor_end_time - monitor_start_time
                 ###### monitor end ######
@@ -109,8 +111,11 @@ class dttp_net(net):
                         sub = self.MSELoss(self.layers[d].weight, last_weights[d])
                         shape = self.layers[d].weight.shape
                         log_dict[f"weight moving {d}"] = float(sub) / (shape[0] * shape[1])
-                    log_dict["target error dist"] = torch.mean(torch.tensor(target_dist))
-                    log_dict["target error angle"] = torch.mean(torch.tensor(target_angle))
+                    for d in range(self.depth - self.direct_depth):
+                        log_dict[f"target error dist {d}"] = torch.mean(
+                            torch.tensor(target_dist[d]))
+                        log_dict[f"target error angle {d}"] = torch.mean(
+                            torch.tensor(target_angle[d]))
 
                     wandb.log(log_dict)
                 else:
@@ -128,8 +133,10 @@ class dttp_net(net):
                         sub = self.MSELoss(self.layers[d].weight, last_weights[d])
                         shape = self.layers[d].weight.shape
                         print(f"\tweight moving {d}: {float(sub) / (shape[0] * shape[1])}")
-                    print(f"\ttarget err dist : {torch.mean(torch.tensor(target_dist))}")
-                    print(f"\ttarget err angle: {torch.mean(torch.tensor(target_angle))}")
+                    for d in range(self.depth - self.direct_depth):
+                        print(f"\ttarget err dist  {d}: {torch.mean(torch.tensor(target_dist[d]))}")
+                        print(
+                            f"\ttarget err angle {d}: {torch.mean(torch.tensor(target_angle[d]))}")
 
     def train_backweights(self, x, lrb, b_sigma):
         self.forward(x)
