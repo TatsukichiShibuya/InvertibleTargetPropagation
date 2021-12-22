@@ -83,10 +83,11 @@ class mytp_net(net):
                     target_dist[d].append(
                         (torch.norm(v3, dim=1) / (torch.norm(v2, dim=1) + 1e-30)).mean())
                     if target_dist_plot[d] is None:
-                        target_dist_plot[d] = torch.norm(v3, dim=1)
+                        target_dist_plot[d] = torch.norm(
+                            v3, dim=1) / (torch.norm(v2, dim=1) + 1e-30)
                     else:
                         target_dist_plot[d] = torch.cat(
-                            [target_dist_plot[d], torch.norm(v3, dim=1)])
+                            [target_dist_plot[d], torch.norm(v3, dim=1) / (torch.norm(v2, dim=1) + 1e-30)])
 
                 eig1, _ = torch.linalg.eig(self.layers[1].weight @ self.layers[1].backweight -
                                            torch.eye(self.layers[1].weight.shape[0], device=self.device))
@@ -160,6 +161,8 @@ class mytp_net(net):
                         plt.xlabel('ratio')
                         plt.ylabel('num')
                         plt.savefig(f"image/target_dist_{d}_{e}.png")
+                        plt.clf()
+                        plt.close()
 
                     for d in range(1, self.depth - self.direct_depth + 1):
                         print(f"\tcond {d}: {torch.linalg.cond(self.layers[d].weight)}")
