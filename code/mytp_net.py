@@ -270,7 +270,7 @@ class mytp_net(net):
             h_after = self.layers[d].forward(self.layers[d - 1].linear_activation if d != 0 else x,
                                              update=False)
             ratio = torch.norm(h_after - self.layers[d].target, dim=1) / local_loss
-            print("update:", d, ratio.min(), ratio.max(), ratio.mean())
+            print("update:", d, len(torch.where(ratio >= 0)[0]), len(torch.where(ratio < 0)[0]))
 
     def reconstruction_loss(self, x):
         h1 = self.layers[0].forward(x, update=False)
