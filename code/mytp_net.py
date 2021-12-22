@@ -9,6 +9,7 @@ import torch
 from torch import nn
 import numpy as np
 from tqdm import tqdm
+import matplotlib.pyplot as plt
 
 
 class mytp_net(net):
@@ -84,14 +85,15 @@ class mytp_net(net):
                     if target_dist_plot[d] is None:
                         target_dist_plot[d] = torch.norm(v3, dim=1)
                     else:
-                        target_dist_plot[d] = torch.cat([target_dist_plot, torch.norm(v3, dim=1)])
+                        target_dist_plot[d] = torch.cat(
+                            [target_dist_plot[d], torch.norm(v3, dim=1)])
 
-                """eig1, _ = torch.linalg.eig(self.layers[1].weight @ self.layers[1].backweight -
+                eig1, _ = torch.linalg.eig(self.layers[1].weight @ self.layers[1].backweight -
                                            torch.eye(self.layers[1].weight.shape[0], device=self.device))
                 eig2, _ = torch.linalg.eig(self.layers[2].weight @ self.layers[2].backweight -
                                            torch.eye(self.layers[2].weight.shape[0], device=self.device))
                 print(eig1.real.max())
-                print(eig2.real.max())"""
+                print(eig2.real.max())
                 monitor_end_time = time.time()
                 monitor_time += monitor_end_time - monitor_start_time
                 ###### monitor end ######
