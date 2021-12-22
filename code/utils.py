@@ -49,7 +49,8 @@ def calc_angle(v1, v2):
 
 def plot_hist_log(x, name):
     plt.figure()
-    plt.hist(target_dist_plot[d].to('cpu').detach().numpy().copy())
+    plt.hist(target_dist_plot[d].to('cpu').detach().numpy().copy(),
+             bins=np.linspace(-6, 30, 40))
     plt.xscale('log')
     plt.xlabel('ratio')
     plt.ylabel('num')
