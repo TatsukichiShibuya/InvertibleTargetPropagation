@@ -153,7 +153,7 @@ class mytp_net(net):
                         print(
                             f"\ttarget err angle {d}: {torch.mean(torch.tensor(target_angle[d]))}")
                         plt.figure()
-                        plt.hist(target_dist_plot[d], bins=bins=np.logspace(0, 30, 50))
+                        plt.hist(target_dist_plot[d], bins=np.logspace(0, 30, 50))
                         plt.xscale('log')
                         plt.xlabel('ratio')
                         plt.ylabel('num')
