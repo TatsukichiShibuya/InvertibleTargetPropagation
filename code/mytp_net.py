@@ -177,6 +177,10 @@ class mytp_net(net):
                     for d in range(self.depth):
                         plot_hist_log(local_loss_plot[d].to('cpu').detach().numpy().copy(),
                                       f"image/local_loss_{d}_{e}.png")
+                        if d < self.depth - self.direct_depth:
+                            ratio = target_dist_u_plot[d] / local_loss_plot[d]
+                            plot_hist_log(ratio.to('cpu').detach().numpy().copy(),
+                                          f"image/ratio_{d}_{e}.png")
                     for d in range(1, self.depth - self.direct_depth + 1):
                         print(f"\tcond {d}: {torch.linalg.cond(self.layers[d].weight)}")
 
