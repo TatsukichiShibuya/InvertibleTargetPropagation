@@ -206,7 +206,10 @@ class dttp_net(net):
             else:
                 h_after = self.layers[d].forward(self.layers[d - 1].linear_activation, update=False)
             local_loss_after = ((self.layers[d].target - h_after)**2).sum(axis=1)
-            print(d, (local_loss_after / local_loss).min(), (local_loss_after / local_loss).max())
+            ratio = local_loss_after / local_loss
+
+            print(d, ratio.min(), ratio.max(),
+                  len(torch.where(ratio < 1)[0]), len(torch.where(ratio >= 1)[0]))
 
     def reconstruction_loss(self, x):
         h1 = self.layers[0].forward(x, update=False)
