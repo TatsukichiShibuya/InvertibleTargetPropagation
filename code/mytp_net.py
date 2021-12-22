@@ -248,7 +248,8 @@ class mytp_net(net):
         for d in reversed(range(self.depth)):
             # compute grad
             local_loss = ((self.layers[d].target - self.layers[d].linear_activation)**2).sum(axis=1)
-            lr = (global_loss / (local_loss + 1e-30)).reshape(-1, 1) if d < D else torch.tensor(1.)
+            # lr = (global_loss / (local_loss + 1e-30)).reshape(-1, 1) if d < D else torch.tensor(1.)
+            lr = torch.tensor(1.)
             n = self.layers[d].activation / \
                 (self.layers[d].activation**2).sum(axis=1).reshape(-1, 1)
             grad = (self.layers[d].target - self.layers[d].linear_activation).T @ (n * lr**lr_ratio)
@@ -265,6 +266,11 @@ class mytp_net(net):
             if not (torch.isnan(grad).any() or torch.isinf(grad).any()
                     or torch.isnan(lr).any() or torch.isinf(lr).any()):
                 self.layers[d].weight = (self.layers[d].weight + grad).detach().requires_grad_()
+
+            h_after = self.layers[d].forward(self.layers[d - 1].linear_activation if d != 0 else x,
+                                             upddate=False)
+            ratio = torch.norm(h_after - self.layers[d].target, dim=1) / local_loss
+            print("update:", d, ratio.min(), ratio.max(), ratio.mean())
 
     def reconstruction_loss(self, x):
         h1 = self.layers[0].forward(x, update=False)
