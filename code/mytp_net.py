@@ -85,10 +85,14 @@ class mytp_net(net):
                     target_angle[d].append(calc_angle(v1, v2).mean())
                     target_dist[d].append(
                         (torch.norm(v3, dim=1) / (torch.norm(v2, dim=1) + 1e-30)).mean())
+
+                    local_loss = torch.norm(
+                        self.layers[d].linear_activation - self.layers[d].target, dim=1)
                     if target_dist_plot[d] is None:
                         target_dist_plot[d] = torch.norm(v3, dim=1) / torch.norm(v2, dim=1)
                         target_dist_u_plot[d] = torch.norm(v3, dim=1)
                         target_dist_b_plot[d] = torch.norm(v2, dim=1)
+                        local_loss_plot[d] = local_loss
                     else:
                         target_dist_plot[d] = torch.cat([target_dist_plot[d],
                                                          torch.norm(v3, dim=1) / torch.norm(v2, dim=1)])
@@ -96,13 +100,9 @@ class mytp_net(net):
                                                            torch.norm(v3, dim=1)])
                         target_dist_b_plot[d] = torch.cat([target_dist_b_plot[d],
                                                            torch.norm(v2, dim=1)])
-                for d in range(self.depth):
-                    local_loss = torch.norm(
-                        self.layers[d].linear_activation - self.layers[d].target, dim=1)
-                    if local_loss_plot[d] is None:
-                        local_loss_plot[d] = local_loss
-                    else:
                         local_loss_plot[d] = torch.cat([local_loss_plot[d], local_loss])
+                        delta = (local_loss / torch.norm(v1, dim=1)) * torch.norm(v3, dim=1)
+                        print(d, delta.min(), delta.max(), delta.mean())
 
                 """eig1, _ = torch.linalg.eig(self.layers[1].weight @ self.layers[1].backweight -
                                            torch.eye(self.layers[1].weight.shape[0], device=self.device))
@@ -258,9 +258,7 @@ class mytp_net(net):
         for d in reversed(range(self.depth)):
             # compute grad
             local_loss = ((self.layers[d].target - self.layers[d].linear_activation)**2).sum(axis=1)
-            #lr = (global_loss / (local_loss + 1e-30)).reshape(-1, 1) if d < D else torch.tensor(1.)
-            lr = (global_loss * torch.log(local_loss)).reshape(-1, 1) if d < D else torch.tensor(1.)
-            lr *= 1e-2
+            lr = (global_loss / (local_loss + 1e-30)).reshape(-1, 1) if d < D else torch.tensor(1.)
             n = self.layers[d].activation / \
                 (self.layers[d].activation**2).sum(axis=1).reshape(-1, 1)
             grad = (self.layers[d].target - self.layers[d].linear_activation).T @ (n * lr**lr_ratio)
@@ -277,14 +275,6 @@ class mytp_net(net):
             if not (torch.isnan(grad).any() or torch.isinf(grad).any()
                     or torch.isnan(lr).any() or torch.isinf(lr).any()):
                 self.layers[d].weight = (self.layers[d].weight + grad).detach().requires_grad_()
-            if d == 0:
-                h_after = self.layers[d].forward(x, update=False)
-            else:
-                h_after = self.layers[d].forward(self.layers[d - 1].linear_activation, update=False)
-            local_loss_after = ((self.layers[d].target - h_after)**2).sum(axis=1)
-            ratio = local_loss_after / local_loss
-            print(d, ratio.min(), ratio.max(),
-                  len(torch.where(ratio < 1)[0]), len(torch.where(ratio >= 1)[0]))
 
     def reconstruction_loss(self, x):
         h1 = self.layers[0].forward(x, update=False)
