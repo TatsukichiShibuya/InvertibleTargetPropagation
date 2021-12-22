@@ -201,6 +201,13 @@ class dttp_net(net):
                     or torch.isnan(lr).any() or torch.isinf(lr).any()):
                 self.layers[d].weight = (self.layers[d].weight + grad).detach().requires_grad_()
 
+            if d == 0:
+                h_after = self.layers[d].forward(x, update=False)
+            else:
+                h_after = self.layers[d].forward(self.layers[d - 1].linear_activation, update=False)
+            local_loss_after = ((self.layers[d].target - h_after)**2).sum(axis=1)
+            print(d, (local_loss_after / local_loss).min(), (local_loss_after / local_loss).max())
+
     def reconstruction_loss(self, x):
         h1 = self.layers[0].forward(x, update=False)
         h = h1
