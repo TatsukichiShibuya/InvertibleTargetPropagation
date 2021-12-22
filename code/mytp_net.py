@@ -160,7 +160,7 @@ class mytp_net(net):
                         plt.xscale('log')
                         plt.xlabel('ratio')
                         plt.ylabel('num')
-                        plt.savefig(f"image/target_dist_{d}_{e}_{i}.png")
+                        plt.savefig(f"image/target_dist_{d}_{e}.png")
 
                     for d in range(1, self.depth - self.direct_depth + 1):
                         print(f"\tcond {d}: {torch.linalg.cond(self.layers[d].weight)}")
