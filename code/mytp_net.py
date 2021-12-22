@@ -268,7 +268,7 @@ class mytp_net(net):
                 self.layers[d].weight = (self.layers[d].weight + grad).detach().requires_grad_()
 
             h_after = self.layers[d].forward(self.layers[d - 1].linear_activation if d != 0 else x,
-                                             upddate=False)
+                                             update=False)
             ratio = torch.norm(h_after - self.layers[d].target, dim=1) / local_loss
             print("update:", d, ratio.min(), ratio.max(), ratio.mean())
 
