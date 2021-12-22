@@ -57,6 +57,7 @@ class mytp_net(net):
             target_dist_plot = [None for i in range(self.depth - self.direct_depth)]
             target_dist_u_plot = [None for i in range(self.depth - self.direct_depth)]
             target_dist_b_plot = [None for i in range(self.depth - self.direct_depth)]
+            local_loss_plot = [None for i in range(self.depth)]
             target_angle = [[] for d in range(self.depth - self.direct_depth)]
             monitor_time = 0
             start_time = time.time()
@@ -95,13 +96,20 @@ class mytp_net(net):
                                                            torch.norm(v3, dim=1)])
                         target_dist_b_plot[d] = torch.cat([target_dist_b_plot[d],
                                                            torch.norm(v2, dim=1)])
+                for d in range(self.depth):
+                    local_loss = torch.norm(
+                        self.layers[d].linear_activation - self.layers[d].target, dim=1)
+                    if local_loss_plot[d] is None:
+                        local_loss_plot[d] = local_loss
+                    else:
+                        local_loss_plot[d] = torch.cat([local_loss_plot[d], local_loss])
 
-                eig1, _ = torch.linalg.eig(self.layers[1].weight @ self.layers[1].backweight -
+                """eig1, _ = torch.linalg.eig(self.layers[1].weight @ self.layers[1].backweight -
                                            torch.eye(self.layers[1].weight.shape[0], device=self.device))
                 eig2, _ = torch.linalg.eig(self.layers[2].weight @ self.layers[2].backweight -
                                            torch.eye(self.layers[2].weight.shape[0], device=self.device))
                 print(eig1.real.max())
-                print(eig2.real.max())
+                print(eig2.real.max())"""
                 monitor_end_time = time.time()
                 monitor_time += monitor_end_time - monitor_start_time
                 ###### monitor end ######
@@ -162,13 +170,13 @@ class mytp_net(net):
                         print(f"\ttarget err dist  {d}: {torch.mean(torch.tensor(target_dist[d]))}")
                         print(
                             f"\ttarget err angle {d}: {torch.mean(torch.tensor(target_angle[d]))}")
-                    plot_hist_log(target_dist_plot[d].to('cpu').detach().numpy().copy(),
-                                  f"image/target_dist_{d}_{e}.png")
-                    plot_hist_log(target_dist_u_plot[d].to('cpu').detach().numpy().copy(),
-                                  f"image/target_dist_u_{d}_{e}.png")
-                    plot_hist_log(target_dist_b_plot[d].to('cpu').detach().numpy().copy(),
-                                  f"image/target_dist_b_{d}_{e}.png")
-
+                        # plot_hist_log(target_dist_plot[d].to('cpu').detach().numpy().copy(),f"image/target_dist_{d}_{e}.png")
+                        plot_hist_log(target_dist_u_plot[d].to('cpu').detach().numpy().copy(),
+                                      f"image/target_dist_u_{d}_{e}.png")
+                        # plot_hist_log(target_dist_b_plot[d].to('cpu').detach().numpy().copy(),f"image/target_dist_b_{d}_{e}.png")
+                    for d in range(self.depth):
+                        plot_hist_log(local_loss_plot[d].to('cpu').detach().numpy().copy(),
+                                      f"image/local_loss_{d}_{e}.png")
                     for d in range(1, self.depth - self.direct_depth + 1):
                         print(f"\tcond {d}: {torch.linalg.cond(self.layers[d].weight)}")
 

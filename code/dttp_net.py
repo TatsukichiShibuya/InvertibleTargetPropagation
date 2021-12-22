@@ -162,6 +162,9 @@ class dttp_net(net):
             for d in range(self.depth - self.direct_depth, self.depth):
                 self.layers[d].target = self.layers[d].linear_activation - \
                     stepsize * self.layers[d].linear_activation.grad
+                #shape = self.layers[d].target.shape
+                #noize = torch.normal(0, 1e-3 / (shape[0] * shape[1])**0.5, shape)
+                #self.layers[d].target += noize
             for d in reversed(range(self.depth - self.direct_depth)):
                 self.layers[d].target = self.layers[d + 1].backward(self.layers[d + 1].target)
 

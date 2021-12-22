@@ -49,7 +49,7 @@ def calc_angle(v1, v2):
 
 def plot_hist_log(x, name):
     plt.figure()
-    plt.hist(x, bins=np.linspace(-6, 30, 40))
+    plt.hist(x)
     plt.xscale('log')
     plt.xlabel('ratio')
     plt.ylabel('num')
