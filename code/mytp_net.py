@@ -1,6 +1,6 @@
 from net import net
 from mytp_layer import mytp_layer
-from utils import calc_angle
+from utils import calc_angle, plot_hist_log
 
 import sys
 import time
@@ -55,6 +55,8 @@ class mytp_net(net):
                 last_weights[d] = self.layers[d].weight
             target_dist = [[] for d in range(self.depth - self.direct_depth)]
             target_dist_plot = [None for i in range(self.depth - self.direct_depth)]
+            target_dist_u_plot = [None for i in range(self.depth - self.direct_depth)]
+            target_dist_b_plot = [None for i in range(self.depth - self.direct_depth)]
             target_angle = [[] for d in range(self.depth - self.direct_depth)]
             monitor_time = 0
             start_time = time.time()
@@ -83,11 +85,16 @@ class mytp_net(net):
                     target_dist[d].append(
                         (torch.norm(v3, dim=1) / (torch.norm(v2, dim=1) + 1e-30)).mean())
                     if target_dist_plot[d] is None:
-                        target_dist_plot[d] = torch.norm(
-                            v3, dim=1) / (torch.norm(v2, dim=1) + 1e-30)
+                        target_dist_plot[d] = torch.norm(v3, dim=1) / torch.norm(v2, dim=1)
+                        target_dist_u_plot[d] = torch.norm(v3, dim=1)
+                        target_dist_b_plot[d] = torch.norm(v2, dim=1)
                     else:
-                        target_dist_plot[d] = torch.cat(
-                            [target_dist_plot[d], torch.norm(v3, dim=1) / (torch.norm(v2, dim=1) + 1e-30)])
+                        target_dist_plot[d] = torch.cat([target_dist_plot[d],
+                                                         torch.norm(v3, dim=1) / torch.norm(v2, dim=1)])
+                        target_dist_u_plot[d] = torch.cat([target_dist_u_plot[d],
+                                                           torch.norm(v3, dim=1)])
+                        target_dist_b_plot[d] = torch.cat([target_dist_b_plot[d],
+                                                           torch.norm(v2, dim=1)])
 
                 eig1, _ = torch.linalg.eig(self.layers[1].weight @ self.layers[1].backweight -
                                            torch.eye(self.layers[1].weight.shape[0], device=self.device))
@@ -155,14 +162,12 @@ class mytp_net(net):
                         print(f"\ttarget err dist  {d}: {torch.mean(torch.tensor(target_dist[d]))}")
                         print(
                             f"\ttarget err angle {d}: {torch.mean(torch.tensor(target_angle[d]))}")
-                        plt.figure()
-                        plt.hist(target_dist_plot[d].to('cpu').detach().numpy().copy())
-                        plt.xscale('log')
-                        plt.xlabel('ratio')
-                        plt.ylabel('num')
-                        plt.savefig(f"image/target_dist_{d}_{e}.png")
-                        plt.clf()
-                        plt.close()
+                    plot_hist_log(target_dist_plot[d].to('cpu').detach().numpy().copy(),
+                                  f"image/target_dist_{d}_{e}.png")
+                    plot_hist_log(target_dist_u_plot[d].to('cpu').detach().numpy().copy(),
+                                  f"image/target_dist_u_{d}_{e}.png")
+                    plot_hist_log(target_dist_b_plot[d].to('cpu').detach().numpy().copy(),
+                                  f"image/target_dist_b_{d}_{e}.png")
 
                     for d in range(1, self.depth - self.direct_depth + 1):
                         print(f"\tcond {d}: {torch.linalg.cond(self.layers[d].weight)}")

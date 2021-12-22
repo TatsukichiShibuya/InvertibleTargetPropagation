@@ -45,3 +45,14 @@ def calc_angle(v1, v2):
     acos = torch.acos(cos) * 180 / math.pi
     angle = 180 - torch.abs(acos - 180)
     return angle
+
+
+def plot_hist_log(x, name):
+    plt.figure()
+    plt.hist(target_dist_plot[d].to('cpu').detach().numpy().copy())
+    plt.xscale('log')
+    plt.xlabel('ratio')
+    plt.ylabel('num')
+    plt.savefig(name)
+    plt.clf()
+    plt.close()
