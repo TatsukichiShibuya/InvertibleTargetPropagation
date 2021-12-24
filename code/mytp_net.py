@@ -103,8 +103,8 @@ class mytp_net(net):
                         local_loss_plot[d] = torch.cat([local_loss_plot[d], local_loss])
                         ratio = local_loss / torch.norm(v1, dim=1)
                         delta = ratio * torch.norm(v3, dim=1)
-                        print("delta      :", d, delta.min(), delta.max(), delta.mean())
-                        print("delta ratio:", d, ratio.min(), ratio.max(), ratio.mean())
+                        #print("delta      :", d, delta.min(), delta.max(), delta.mean())
+                        #print("delta ratio:", d, ratio.min(), ratio.max(), ratio.mean())
                 monitor_end_time = time.time()
                 monitor_time += monitor_end_time - monitor_start_time
                 ###### monitor end ######
@@ -163,14 +163,8 @@ class mytp_net(net):
                         print(f"\tweight moving {d}: {float(sub) / (shape[0] * shape[1])}")
                     for d in range(self.depth - self.direct_depth):
                         print(f"\ttarget err dist  {d}: {torch.mean(torch.tensor(target_dist[d]))}")
-                        print(f"\ttarget err angle{d}: {torch.mean(torch.tensor(target_angle[d]))}")
-                        # plot_hist_log(target_dist_plot[d].to('cpu').detach().numpy().copy(),f"image/target_dist_{d}_{e}.png")
-                        plot_hist_log(target_dist_u_plot[d].to('cpu').detach().numpy().copy(),
-                                      f"image/target_dist_u_{d}_{e}.png")
-                        # plot_hist_log(target_dist_b_plot[d].to('cpu').detach().numpy().copy(),f"image/target_dist_b_{d}_{e}.png")
-                    for d in range(self.depth - self.direct_depth):
-                        plot_hist_log(local_loss_plot[d].to('cpu').detach().numpy().copy(),
-                                      f"image/local_loss_{d}_{e}.png")
+                        print(
+                            f"\ttarget err angle {d}: {torch.mean(torch.tensor(target_angle[d]))}")
                     for d in range(1, self.depth - self.direct_depth + 1):
                         print(f"\tcond {d}: {torch.linalg.cond(self.layers[d].weight)}")
 
@@ -248,8 +242,8 @@ class mytp_net(net):
         for d in reversed(range(self.depth)):
             # compute grad
             local_loss = ((self.layers[d].target - self.layers[d].linear_activation)**2).sum(axis=1)
-            # lr = (global_loss / (local_loss + 1e-30)).reshape(-1, 1) if d < D else torch.tensor(1.)
-            lr = torch.tensor(1. / self.depth)
+            lr = (global_loss / (local_loss + 1e-30)).reshape(-1, 1) if d < D else torch.tensor(1.)
+            #lr = torch.tensor(1. / self.depth)
             n = self.layers[d].activation / \
                 (self.layers[d].activation**2).sum(axis=1).reshape(-1, 1)
             grad = (self.layers[d].target - self.layers[d].linear_activation).T @ (n * lr**lr_ratio)
