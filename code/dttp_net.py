@@ -162,18 +162,22 @@ class dttp_net(net):
             for d in range(self.depth - self.direct_depth, self.depth):
                 self.layers[d].target = self.layers[d].linear_activation - \
                     stepsize * self.layers[d].linear_activation.grad
-                #shape = self.layers[d].target.shape
-                #noize = torch.normal(0, 1e-3 / (shape[0] * shape[1])**0.5, shape)
-                #self.layers[d].target += noize
             for d in reversed(range(self.depth - self.direct_depth)):
                 self.layers[d].target = self.layers[d + 1].backward(self.layers[d + 1].target)
 
-            for i in range(refinement_iter):
+            delta, i = None, 0
+            while (delta is None
+                   or (torch.norm(delta, dim=1).max().item() > 1e-5 and i < refinement_iter)):
                 for d in reversed(range(self.depth - self.direct_depth)):
                     gt = self.layers[d + 1].backward(self.layers[d + 1].target)
                     ft = self.layers[d + 1].forward(self.layers[d].target, update=False)
                     gft = self.layers[d + 1].backward(ft)
-                    self.layers[d].target += gt - gft
+                    delta = gt - gft
+                    self.layers[d].target += delta
+                    i += 1
+            bad_target = torch.where(delta > 1e-5)[0]
+            print(self.layers[0].target[bad_target])
+            print(d, i)
 
     def update_weights(self, x, lr_ratio, scaling=False):
         self.forward(x)
@@ -200,21 +204,6 @@ class dttp_net(net):
             if not (torch.isnan(grad).any() or torch.isinf(grad).any()
                     or torch.isnan(lr).any() or torch.isinf(lr).any()):
                 self.layers[d].weight = (self.layers[d].weight + grad).detach().requires_grad_()
-            """
-            loss_b = ((self.layers[d].target - self.layers[d].linear_activation)**2).sum(axis=1)
-
-            loss = self.MSELoss(self.layers[d].target, self.layers[d].linear_activation)
-            loss.backward(retain_graph=True)
-            grad = self.layers[d].weight.grad
-            self.layers[d].weight = (self.layers[d].weight - 1e-2 / len(self.layers[d].target) *
-                                     grad).detach().requires_grad_()
-            h = self.layers[d].forward(
-                self.layers[d - 1].linear_activation if d != 0 else x, update=False)
-            loss_a = ((self.layers[d].target - h)**2).sum(axis=1)
-            ratio = loss_a / loss_b
-            print(d, ratio)
-            # print(d, len(torch.where(ratio > 1)[0]), len(torch.where(ratio <= 1)[0]))
-            """
 
     def reconstruction_loss(self, x):
         h1 = self.layers[0].forward(x, update=False)

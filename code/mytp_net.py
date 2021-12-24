@@ -229,11 +229,9 @@ class mytp_net(net):
             elif refinement_type == "fg":
                 for d in reversed(range(self.depth - self.direct_depth)):
                     u = self.layers[d + 1].target
-                    delta = None
-                    i = 0
+                    delta, i = None, 0
                     while (delta is None
-                           or (torch.norm(delta, dim=1).max().item() > 1e-5
-                               and i < refinement_iter)):
+                           or (torch.norm(delta, dim=1).max().item() > 1e-5 and i < refinement_iter)):
                         gt = self.layers[d + 1].backward(u)
                         fgt = self.layers[d + 1].forward(gt, update=False)
                         delta = self.layers[d + 1].target - fgt
