@@ -176,15 +176,14 @@ class dttp_net(net):
                     self.layers[d].target += delta
                     i += 1
             bad_target = torch.where(delta > 1e-5)[0]
-            print(torch.norm(self.layers[0].target[bad_target] -
-                  self.layers[0].linear_activation[bad_target], dim=1).max())
-            print(d, i)
+            # print(torch.norm(self.layers[0].target[bad_target] -self.layers[0].linear_activation[bad_target], dim = 1).max())
+            # print(d, i)
 
     def update_weights(self, x, lr_ratio, scaling=False):
         self.forward(x)
         global_loss = ((self.layers[-1].target - self.layers[-1].linear_activation)**2).sum(axis=1)
         grad_base = 0
-        for d in reversed(range(self.depth - self.direct_depth)):
+        for d in reversed(range(self.depth - self.direct_depth, self.depth)):
             # compute grad
             local_loss = ((self.layers[d].target - self.layers[d].linear_activation)**2).sum(axis=1)
             lr = (global_loss / (local_loss + 1e-30)).reshape(-1, 1)
