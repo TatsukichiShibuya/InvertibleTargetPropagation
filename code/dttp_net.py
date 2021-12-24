@@ -184,7 +184,7 @@ class dttp_net(net):
         self.forward(x)
         global_loss = ((self.layers[-1].target - self.layers[-1].linear_activation)**2).sum(axis=1)
         grad_base = 0
-        for d in reversed(range(self.depth)):
+        for d in reversed(range(self.depth - self.direct_depth)):
             # compute grad
             local_loss = ((self.layers[d].target - self.layers[d].linear_activation)**2).sum(axis=1)
             lr = (global_loss / (local_loss + 1e-30)).reshape(-1, 1)
