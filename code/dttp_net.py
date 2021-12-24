@@ -177,21 +177,13 @@ class dttp_net(net):
         self.forward(x)
         global_loss = ((self.layers[-1].target - self.layers[-1].linear_activation)**2).sum(axis=1)
         grad_base = 0
-        for d in reversed(range(self.depth - self.direct_depth, self.depth)):
+        for d in reversed(range(self.depth)):
             # compute grad
             local_loss = ((self.layers[d].target - self.layers[d].linear_activation)**2).sum(axis=1)
             lr = (global_loss / (local_loss + 1e-30)).reshape(-1, 1)
             n = self.layers[d].activation / \
                 (self.layers[d].activation**2).sum(axis=1).reshape(-1, 1)
-            grad = (self.layers[d].target - self.layers[d].linear_activation).T @ (n * lr**lr_ratio)
-
-            # scaling
-            if scaling:
-                shape = self.layers[d].weight.shape
-                if d == D:
-                    grad_base = torch.norm(grad)**2 / (shape[0] * shape[1])
-                elif d < D:
-                    grad = grad * (grad_base / (torch.norm(grad) ** 2 / (shape[0] * shape[1])))**0.5
+            grad = (self.layers[d].target - self.layers[d].linear_activation).T @ (n * lr)
 
             # update weight
             if not (torch.isnan(grad).any() or torch.isinf(grad).any()
