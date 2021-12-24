@@ -233,6 +233,7 @@ class mytp_net(net):
                         fgt = self.layers[d + 1].forward(gt, update=False)
                         u = u + self.layers[d + 1].target - fgt
                     self.layers[d].target = self.layers[d + 1].backward(u)
+                    print(d, torch.norm(self.layers[d + 1].target - fgt, dim=1).max())
 
     def update_weights(self, x, lr_ratio, scaling=False):
         self.forward(x)
