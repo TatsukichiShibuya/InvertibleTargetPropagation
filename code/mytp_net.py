@@ -231,13 +231,17 @@ class mytp_net(net):
                     u = self.layers[d + 1].target
                     delta = None
                     i = 0
-                    while delta is None or torch.norm(delta, dim=1).max().item() > 1e-5:
+                    while (delta is None
+                           or (torch.norm(delta, dim=1).max().item() > 1e-5
+                               and i < refinement_iter)):
                         gt = self.layers[d + 1].backward(u)
                         fgt = self.layers[d + 1].forward(gt, update=False)
                         delta = self.layers[d + 1].target - fgt
                         u = u + delta
                         i += 1
                     self.layers[d].target = self.layers[d + 1].backward(u)
+                    bad_target = torch.where(delta > 1e-5)[0]
+                    self.layers[d].target[bad_target] = self.layers[d].linear_activation[bad_target]
                     print(d, i)
 
     def update_weights(self, x, lr_ratio, scaling=False):
