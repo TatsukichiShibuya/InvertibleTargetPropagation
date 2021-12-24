@@ -180,7 +180,6 @@ class dttp_net(net):
         global_loss = ((self.layers[-1].target - self.layers[-1].linear_activation)**2).sum(axis=1)
         grad_base = 0
         for d in reversed(range(self.depth)):
-            """
             # compute grad
             local_loss = ((self.layers[d].target - self.layers[d].linear_activation)**2).sum(axis=1)
             lr = (global_loss / (local_loss + 1e-30)).reshape(-1, 1)
@@ -208,12 +207,13 @@ class dttp_net(net):
             grad = self.layers[d].weight.grad
             self.layers[d].weight = (self.layers[d].weight - 1e-2 / len(self.layers[d].target) *
                                      grad).detach().requires_grad_()
+            """
 
             import pdb
             pdb.set_trace()
 
-            h = self.layers[d].forward(self.layers[d - 1].linear_activation if d != 0 else x,
-                                       update=False)
+            h = self.layers[d].forward(
+                self.layers[d - 1].linear_activation if d != 0 else x, update=False)
             loss_a = ((self.layers[d].target - h)**2).sum(axis=1)
             ratio = loss_a / loss_b
             print(d, ratio)
