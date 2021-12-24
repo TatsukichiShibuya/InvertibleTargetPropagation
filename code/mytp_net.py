@@ -224,15 +224,16 @@ class mytp_net(net):
                         ft = self.layers[d + 1].forward(self.layers[d].target, update=False)
                         gft = self.layers[d + 1].backward(ft)
                         self.layers[d].target += gt - gft
+                    print(d, torch.norm(gt - gft, dim=1).max())
             elif refinement_type == "fg":
                 for d in reversed(range(self.depth - self.direct_depth)):
                     u = self.layers[d + 1].target
                     for i in range(refinement_iter):
                         gt = self.layers[d + 1].backward(u)
                         fgt = self.layers[d + 1].forward(gt, update=False)
-                        delta = self.layers[d + 1].target - fgt
-                        u = u + delta
+                        u = u + self.layers[d + 1].target - fgt
                     self.layers[d].target = self.layers[d + 1].backward(u)
+                    print(torch.norm(self.layers[d + 1].target - fgt, dim=1).max())
 
     def update_weights(self, x, lr_ratio, scaling=False):
         self.forward(x)
