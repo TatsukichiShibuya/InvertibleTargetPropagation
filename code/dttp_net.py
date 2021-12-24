@@ -208,7 +208,7 @@ class dttp_net(net):
             grad = self.layers[d].weight.grad
             self.layers[d].weight = (self.layers[d].weight + grad).detach().requires_grad_()
 
-            h = self.layers[d].forward(self.layers[d - 1].linear_activation if d != 1 else x,
+            h = self.layers[d].forward(self.layers[d - 1].linear_activation if d != 0 else x,
                                        update=False)
             loss_a = ((self.layers[d].target - h)**2).sum(axis=1)
             ratio = loss_a / loss_b
