@@ -207,17 +207,16 @@ class dttp_net(net):
             grad = self.layers[d].weight.grad
             self.layers[d].weight = (self.layers[d].weight - 1e-2 / len(self.layers[d].target) *
                                      grad).detach().requires_grad_()
-            """
-
-            import pdb
-            pdb.set_trace()
-
             h = self.layers[d].forward(
                 self.layers[d - 1].linear_activation if d != 0 else x, update=False)
             loss_a = ((self.layers[d].target - h)**2).sum(axis=1)
             ratio = loss_a / loss_b
             print(d, ratio)
             # print(d, len(torch.where(ratio > 1)[0]), len(torch.where(ratio <= 1)[0]))
+            """
+
+            import pdb
+            pdb.set_trace()
 
     def reconstruction_loss(self, x):
         h1 = self.layers[0].forward(x, update=False)
