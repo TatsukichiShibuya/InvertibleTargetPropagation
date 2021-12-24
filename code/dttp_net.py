@@ -166,8 +166,9 @@ class dttp_net(net):
                 self.layers[d].target = self.layers[d + 1].backward(self.layers[d + 1].target)
 
             delta, i = None, 0
-            while (delta is None
-                   or (torch.norm(delta, dim=1).max().item() > 1e-5 and i < refinement_iter)):
+            while (self.depth - self.direct_depth > 0
+                   and (delta is None
+                        or (torch.norm(delta, dim=1).max().item() > 1e-5 and i < refinement_iter))):
                 for d in reversed(range(self.depth - self.direct_depth)):
                     gt = self.layers[d + 1].backward(self.layers[d + 1].target)
                     ft = self.layers[d + 1].forward(self.layers[d].target, update=False)
