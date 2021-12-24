@@ -176,7 +176,8 @@ class dttp_net(net):
                     self.layers[d].target += delta
                     i += 1
             bad_target = torch.where(delta > 1e-5)[0]
-            print(self.layers[0].target[bad_target])
+            print(torch.norm(self.layers[0].target[bad_target] -
+                  self.layers[0].linear_activation[bad_target], dim=1).max())
             print(d, i)
 
     def update_weights(self, x, lr_ratio, scaling=False):
