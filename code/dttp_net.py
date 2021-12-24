@@ -165,7 +165,7 @@ class dttp_net(net):
             for d in reversed(range(self.depth - self.direct_depth)):
                 self.layers[d].target = self.layers[d + 1].backward(self.layers[d + 1].target)
 
-            for i in range(self.refinement_iter):
+            for i in range(refinement_iter):
                 for d in reversed(range(self.depth - self.direct_depth)):
                     gt = self.layers[d + 1].backward(self.layers[d + 1].target)
                     ft = self.layers[d + 1].forward(self.layers[d].target, update=False)
