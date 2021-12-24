@@ -85,6 +85,7 @@ class mytp_net(net):
                     target_angle[d].append(calc_angle(v1, v2).mean())
                     target_dist[d].append(
                         (torch.norm(v3, dim=1) / (torch.norm(v2, dim=1) + 1e-30)).mean())
+                    print("targetのずれ", d, torch.norm(v3, dim=1).min(), torch.norm(v3, dim=1).max())
 
                     local_loss = torch.norm(
                         self.layers[d].linear_activation - self.layers[d].target, dim=1)
