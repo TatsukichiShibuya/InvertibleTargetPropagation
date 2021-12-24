@@ -180,6 +180,7 @@ class dttp_net(net):
         global_loss = ((self.layers[-1].target - self.layers[-1].linear_activation)**2).sum(axis=1)
         grad_base = 0
         for d in reversed(range(self.depth)):
+            """
             # compute grad
             local_loss = ((self.layers[d].target - self.layers[d].linear_activation)**2).sum(axis=1)
             lr = (global_loss / (local_loss + 1e-30)).reshape(-1, 1)
@@ -199,6 +200,19 @@ class dttp_net(net):
             if not (torch.isnan(grad).any() or torch.isinf(grad).any()
                     or torch.isnan(lr).any() or torch.isinf(lr).any()):
                 self.layers[d].weight = (self.layers[d].weight + grad).detach().requires_grad_()
+            """
+            loss_b = ((self.layers[d].target - self.layers[d].linear_activation)**2).sum(axis=1)
+
+            loss = self.MSELoss(self.layers[d].target, self.layers[d].linear_activation)
+            loss.backward()
+            grad = self.layers[d].weight.grad
+            self.layers[d].weight = (self.layers[d].weight + grad).detach().requires_grad_()
+
+            h = self.layers[d].forward(self.layers[d - 1].linear_activation if d != 1 else x,
+                                       update=False)
+            loss_a = ((self.layers[d].target - h)**2).sum(axis=1)
+            ratio = loss_a / loss_b
+            print(d, len(torch.where(ratio > 1)[0]), len(torch.where(ratio <= 1)[0]))
 
     def reconstruction_loss(self, x):
         h1 = self.layers[0].forward(x, update=False)
