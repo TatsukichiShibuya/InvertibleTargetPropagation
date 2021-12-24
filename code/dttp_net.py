@@ -165,20 +165,13 @@ class dttp_net(net):
             for d in reversed(range(self.depth - self.direct_depth)):
                 self.layers[d].target = self.layers[d + 1].backward(self.layers[d + 1].target)
 
-            delta, i = None, 0
-            while (self.depth - self.direct_depth > 0
-                   and (delta is None
-                        or (torch.norm(delta, dim=1).max().item() > 1e-5 and i < refinement_iter))):
+            for i in range(self.refinement_iter):
                 for d in reversed(range(self.depth - self.direct_depth)):
                     gt = self.layers[d + 1].backward(self.layers[d + 1].target)
                     ft = self.layers[d + 1].forward(self.layers[d].target, update=False)
                     gft = self.layers[d + 1].backward(ft)
                     delta = gt - gft
                     self.layers[d].target += delta
-                    i += 1
-            # bad_target = torch.where(delta > 1e-5)[0]
-            # print(torch.norm(self.layers[0].target[bad_target] -self.layers[0].linear_activation[bad_target], dim = 1).max())
-            # print(d, i)
 
     def update_weights(self, x, lr_ratio, scaling=False):
         self.forward(x)
@@ -188,7 +181,6 @@ class dttp_net(net):
             # compute grad
             local_loss = ((self.layers[d].target - self.layers[d].linear_activation)**2).sum(axis=1)
             lr = (global_loss / (local_loss + 1e-30)).reshape(-1, 1)
-            # lr = torch.tensor(1. / self.depth)
             n = self.layers[d].activation / \
                 (self.layers[d].activation**2).sum(axis=1).reshape(-1, 1)
             grad = (self.layers[d].target - self.layers[d].linear_activation).T @ (n * lr**lr_ratio)
