@@ -206,7 +206,7 @@ class dttp_net(net):
             loss = self.MSELoss(self.layers[d].target, self.layers[d].linear_activation)
             loss.backward(retain_graph=True)
             grad = self.layers[d].weight.grad
-            self.layers[d].weight = (self.layers[d].weight + 1e-4 / len(self.layers[d].target) *
+            self.layers[d].weight = (self.layers[d].weight - 1e-4 / len(self.layers[d].target) *
                                      grad).detach().requires_grad_()
 
             h = self.layers[d].forward(self.layers[d - 1].linear_activation if d != 0 else x,
