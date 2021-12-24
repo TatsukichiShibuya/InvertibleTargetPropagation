@@ -85,7 +85,7 @@ class mytp_net(net):
                     target_angle[d].append(calc_angle(v1, v2).mean())
                     target_dist[d].append(
                         (torch.norm(v3, dim=1) / (torch.norm(v2, dim=1) + 1e-30)).mean())
-                    print("targetのずれ", d, torch.norm(v3, dim=1).min(), torch.norm(v3, dim=1).max())
+                    #print("targetのずれ", d, torch.norm(v3, dim=1).min(), torch.norm(v3, dim=1).max())
 
                     local_loss = torch.norm(
                         self.layers[d].linear_activation - self.layers[d].target, dim=1)
@@ -244,7 +244,7 @@ class mytp_net(net):
             # compute grad
             local_loss = ((self.layers[d].target - self.layers[d].linear_activation)**2).sum(axis=1)
             lr = (global_loss / (local_loss + 1e-30)).reshape(-1, 1)
-            print("lr", d, lr.min().item(), lr.max().item())
+            #print("lr", d, lr.min().item(), lr.max().item())
             n = self.layers[d].activation / \
                 (self.layers[d].activation**2).sum(axis=1).reshape(-1, 1)
             grad = (self.layers[d].target - self.layers[d].linear_activation).T @ (n * lr**lr_ratio)
@@ -265,7 +265,7 @@ class mytp_net(net):
             h_after = self.layers[d].forward(self.layers[d - 1].linear_activation if d != 0 else x,
                                              update=False)
             ratio = ((self.layers[d].target - h_after) ** 2).sum(axis=1) / local_loss
-            print("update:", d, len(torch.where(ratio >= 1)[0]), len(torch.where(ratio < 1)[0]))
+            #print("update:", d, len(torch.where(ratio >= 1)[0]), len(torch.where(ratio < 1)[0]))
 
     def reconstruction_loss(self, x):
         h1 = self.layers[0].forward(x, update=False)
