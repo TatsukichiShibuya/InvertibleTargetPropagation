@@ -209,6 +209,9 @@ class dttp_net(net):
             self.layers[d].weight = (self.layers[d].weight - 1e-2 / len(self.layers[d].target) *
                                      grad).detach().requires_grad_()
 
+            import pdb
+            pdb.set_trace()
+
             h = self.layers[d].forward(self.layers[d - 1].linear_activation if d != 0 else x,
                                        update=False)
             loss_a = ((self.layers[d].target - h)**2).sum(axis=1)
