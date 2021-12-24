@@ -236,14 +236,12 @@ class mytp_net(net):
 
     def update_weights(self, x, lr_ratio, scaling=False):
         self.forward(x)
-        D = self.depth - self.direct_depth
-        global_loss = ((self.layers[D].target - self.layers[D].linear_activation)**2).sum(axis=1)
+        global_loss = ((self.layers[-1].target - self.layers[-1].linear_activation)**2).sum(axis=1)
         grad_base = 0
         for d in reversed(range(self.depth)):
             # compute grad
             local_loss = ((self.layers[d].target - self.layers[d].linear_activation)**2).sum(axis=1)
-            lr = (global_loss / (local_loss + 1e-30)).reshape(-1, 1) if d < D else torch.tensor(1.)
-            #lr = torch.tensor(1. / self.depth)
+            lr = (global_loss / (local_loss + 1e-30)).reshape(-1, 1)
             n = self.layers[d].activation / \
                 (self.layers[d].activation**2).sum(axis=1).reshape(-1, 1)
             grad = (self.layers[d].target - self.layers[d].linear_activation).T @ (n * lr**lr_ratio)
