@@ -104,7 +104,16 @@ class mytp_net(net):
                 ###### monitor end ######
 
                 # train forward
+                h_2, t_2 = self.layers[2].linear_activation, self.layers[2].target
+                move_base = t_2 - h_2
+
                 self.update_weights(x, lr_ratio, scaling=scaling)
+
+                self.forward(x)
+                h_2_ = self.layers[2].linear_activation
+                move = h_2_ - h_2
+                print("move:", calc_angle(v1, v2).mean(),
+                      (torch.norm(move, dim=1) / (torch.norm(move_base, dim=1) + 1e-30)).mean())
 
             end_time = time.time()
             print(f"epochs {e}: {end_time - start_time - monitor_time:.2f}, {monitor_time:.2f}")
@@ -255,8 +264,7 @@ class mytp_net(net):
 
             h_after = self.layers[d].forward(self.layers[d - 1].linear_activation if d != 0 else x,
                                              update=False)
-            ratio = ((self.layers[d].target - h_after) ** 2).sum(axis=1) / local_loss
-            #print("update:", d, len(torch.where(ratio >= 1)[0]), len(torch.where(ratio < 1)[0]))
+            print(f"dist (t_{d} and h_{d}):", torch.norm(h_after - target, dim=1))
 
     def reconstruction_loss(self, x):
         h1 = self.layers[0].forward(x, update=False)
