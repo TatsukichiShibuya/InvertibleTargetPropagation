@@ -77,7 +77,8 @@ class mytp_net(net):
                     target_angle[d].append(calc_angle(v1, v2).mean())
                     target_dist[d].append(
                         (torch.norm(v3, dim=1) / (torch.norm(v2, dim=1) + 1e-30)).mean())
-                    #print(f"targetのずれ {d}: {torch.norm(v3, dim=1).min().item()} {torch.norm(v3, dim=1).max().item()}")
+                    print(
+                        f"targetのずれ {d}: {torch.norm(v3, dim=1).min().item()} {torch.norm(v3, dim=1).max().item()}")
 
                     local_loss = torch.norm(
                         self.layers[d].linear_activation - self.layers[d].target, dim=1)
@@ -239,12 +240,10 @@ class mytp_net(net):
         batch_size = len(x)
         for d in reversed(range(self.depth)):
             loss = torch.norm(self.layers[d].target - self.layers[d].linear_activation)**2
-            if 1 <= d <= self.depth - self.direct_depth:
-                loss += torch.linalg.cond(self.layers[d].weight)
             if self.layers[d].weight.grad is not None:
                 self.layers[d].weight.grad.zero_()
             loss.backward(retain_graph=True)
-            self.layers[d].weight = (self.layers[d].weight - (1 / batch_size) *
+            self.layers[d].weight = (self.layers[d].weight -
                                      self.layers[d].weight.grad).detach().requires_grad_()
 
     def reconstruction_loss(self, x):
