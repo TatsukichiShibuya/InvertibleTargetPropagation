@@ -35,17 +35,9 @@ class mytp_net(net):
               b_epochs, b_sigma, refinement_iter, refinement_type, b_loss, log):
         if b_loss == "inv":
             b_epochs = 1
-        else:
-            # train backward network
-            for e in range(1):
-                # train backward
-                for x, y in train_loader:
-                    x, y = x.to(self.device), y.to(self.device)
-                    for be in range(b_epochs):
-                        self.train_backweights(x, lrb, b_sigma, b_loss)
 
-                # reconstruction loss
-                print(f"epochs {e}: {self.reconstruction_loss_of_dataset(train_loader)}")
+        # reconstruction loss
+        print(f"rec loss (init): {self.reconstruction_loss_of_dataset(train_loader)}")
 
         # train forward network
         for e in range(epochs):

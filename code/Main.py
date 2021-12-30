@@ -36,8 +36,8 @@ def get_args():
     parser.add_argument("--algorithm",  type=str, default="BP",
                         choices=['BP', 'DTTP', 'MyTP'])
     parser.add_argument("--epochs",     type=int, default=100)
-    parser.add_argument("--batch_size",  type=int, default=100)
-    parser.add_argument("--seed",       type=int, default=39)
+    parser.add_argument("--batch_size",  type=int, default=256)
+    parser.add_argument("--seed",       type=int, default=0)
 
     # parameters used in BP
     parser.add_argument("--learning_rate", "-lr", type=float, default=1e-6)
