@@ -77,7 +77,8 @@ class mytp_net(net):
                     target_angle[d].append(calc_angle(v1, v2).mean())
                     target_dist[d].append(
                         (torch.norm(v3, dim=1) / (torch.norm(v2, dim=1) + 1e-30)).mean())
-                    print("targetのずれ", d, torch.norm(v3, dim=1).min(), torch.norm(v3, dim=1).max())
+                    print(
+                        f"targetのずれ {d}: {torch.norm(v3, dim=1).min().item()} {torch.norm(v3, dim=1).max().item()}")
 
                     local_loss = torch.norm(
                         self.layers[d].linear_activation - self.layers[d].target, dim=1)
@@ -217,22 +218,14 @@ class mytp_net(net):
                         ft = self.layers[d + 1].forward(self.layers[d].target, update=False)
                         gft = self.layers[d + 1].backward(ft)
                         self.layers[d].target += gt - gft
-                    print(d, torch.norm(gt - gft, dim=1).max())
             elif refinement_type == "fg":
                 for d in reversed(range(self.depth - self.direct_depth)):
                     u = self.layers[d + 1].target
-                    delta, i = None, 0
-                    while (delta is None
-                           or (torch.norm(delta, dim=1).max().item() > 1e-5 and i < refinement_iter)):
+                    for i in range(refinement_iter):
                         gt = self.layers[d + 1].backward(u)
                         fgt = self.layers[d + 1].forward(gt, update=False)
-                        delta = self.layers[d + 1].target - fgt
-                        u = u + delta
-                        i += 1
+                        u = u + self.layers[d + 1].target - fgt
                     self.layers[d].target = self.layers[d + 1].backward(u)
-                    bad_target = torch.where(delta > 1e-5)[0]
-                    self.layers[d].target[bad_target] = self.layers[d].linear_activation[bad_target]
-                    print(d, i)
 
     def update_weights(self, x, lr_ratio, scaling=False):
         self.forward(x)
