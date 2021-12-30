@@ -65,7 +65,6 @@ class dttp_net(net):
                 self.compute_target(x, y, stepsize, refinement_iter)
 
                 ###### monitor start ######
-                """
                 monitor_start_time = time.time()
                 # compute target error
                 for d in range(self.depth - self.direct_depth):
@@ -80,7 +79,6 @@ class dttp_net(net):
                         (torch.norm(v3, dim=1) / (torch.norm(v2, dim=1) + 1e-30)).mean())
                 monitor_end_time = time.time()
                 monitor_time += monitor_end_time - monitor_start_time
-                """
                 ###### monitor end ######
 
                 # train forward
@@ -131,7 +129,6 @@ class dttp_net(net):
                     print(f"\trec loss       : {rec_loss}")
 
                     # monitor
-                    """
                     for d in range(self.depth):
                         sub = self.MSELoss(self.layers[d].weight, last_weights[d])
                         shape = self.layers[d].weight.shape
@@ -140,7 +137,6 @@ class dttp_net(net):
                         print(f"\ttarget err dist  {d}: {torch.mean(torch.tensor(target_dist[d]))}")
                         print(
                             f"\ttarget err angle {d}: {torch.mean(torch.tensor(target_angle[d]))}")
-                    """
 
     def train_backweights(self, x, lrb, b_sigma):
         self.forward(x)
