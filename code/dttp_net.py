@@ -176,7 +176,8 @@ class dttp_net(net):
 
     def update_weights(self, x, lr_ratio, scaling=False):
         self.forward(x)
-        global_loss = ((self.layers[-1].target - self.layers[-1].linear_activation)**2).sum(axis=1)
+        D = self.depth - self.direct_depth
+        global_loss = ((self.layers[D].target - self.layers[D].linear_activation)**2).sum(axis=1)
         grad_base = 0
         for d in reversed(range(self.depth)):
             # compute grad
