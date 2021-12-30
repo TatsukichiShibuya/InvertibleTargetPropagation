@@ -264,7 +264,7 @@ class mytp_net(net):
 
             h_after = self.layers[d].forward(self.layers[d - 1].linear_activation if d != 0 else x,
                                              update=False)
-            print(f"dist (t_{d} and h_{d}):", torch.norm(h_after - target, dim=1))
+            print(f"dist (t_{d} and h_{d}):", torch.norm(h_after - self.layers[d].target, dim=1))
 
     def reconstruction_loss(self, x):
         h1 = self.layers[0].forward(x, update=False)
