@@ -184,9 +184,7 @@ class dttp_net(net):
             self.layers[d].weight = (self.layers[d].weight -
                                      self.layers[d].weight.grad).detach().requires_grad_()
 
-
-"""
-    def update_weights(self, x, lr_ratio, scaling=False):
+    """def update_weights(self, x, lr_ratio, scaling=False):
         self.forward(x)
         D = self.depth - self.direct_depth
         global_loss = ((self.layers[D].target - self.layers[D].linear_activation)**2).sum(axis=1)
@@ -202,10 +200,9 @@ class dttp_net(net):
             # update weight
             if not (torch.isnan(grad).any() or torch.isinf(grad).any()
                     or torch.isnan(lr).any() or torch.isinf(lr).any()):
-                self.layers[d].weight = (self.layers[d].weight + grad).detach().requires_grad_()
-"""
+                self.layers[d].weight = (self.layers[d].weight + grad).detach().requires_grad_()"""
 
-   def reconstruction_loss(self, x):
+    def reconstruction_loss(self, x):
         h1 = self.layers[0].forward(x, update=False)
         h = h1
         for d in range(1, self.depth - self.direct_depth + 1):
