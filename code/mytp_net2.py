@@ -239,6 +239,8 @@ class mytp_net(net):
         batch_size = len(x)
         for d in reversed(range(self.depth)):
             loss = torch.norm(self.layers[d].target - self.layers[d].linear_activation)**2
+            if 1 <= d <= self.depth - self.direct_depth:
+                loss += torch.linalg.cond(self.layers[d].weight)
             if self.layers[d].weight.grad is not None:
                 self.layers[d].weight.grad.zero_()
             loss.backward(retain_graph=True)
