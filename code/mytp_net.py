@@ -77,8 +77,7 @@ class mytp_net(net):
                     target_angle[d].append(calc_angle(v1, v2).mean())
                     target_dist[d].append(
                         (torch.norm(v3, dim=1) / (torch.norm(v2, dim=1) + 1e-30)).mean())
-                    print(
-                        f"targetのずれ {d}: {torch.norm(v3, dim=1).min().item()} {torch.norm(v3, dim=1).max().item()}")
+                    #print(f"targetのずれ {d}: {torch.norm(v3, dim=1).min().item()} {torch.norm(v3, dim=1).max().item()}")
 
                     local_loss = torch.norm(
                         self.layers[d].linear_activation - self.layers[d].target, dim=1)
@@ -112,8 +111,7 @@ class mytp_net(net):
                 self.forward(x)
                 h_2_ = self.layers[2].linear_activation
                 move = h_2_ - h_2
-                print("move:", calc_angle(v1, v2).mean(),
-                      (torch.norm(move, dim=1) / (torch.norm(move_base, dim=1) + 1e-30)).mean())
+                #print("move:", calc_angle(v1, v2).mean(),(torch.norm(move, dim=1) / (torch.norm(move_base, dim=1) + 1e-30)).mean())
 
             end_time = time.time()
             print(f"epochs {e}: {end_time - start_time - monitor_time:.2f}, {monitor_time:.2f}")
@@ -265,7 +263,7 @@ class mytp_net(net):
 
             h_after = self.layers[d].forward(self.layers[d - 1].linear_activation if d != 0 else x,
                                              update=False)
-            print(f"dist (t_{d} and h_{d}):", torch.norm(h_after - self.layers[d].target, dim=1))
+            #print(f"dist (t_{d} and h_{d}):", torch.norm(h_after - self.layers[d].target, dim=1))
 
     def reconstruction_loss(self, x):
         h1 = self.layers[0].forward(x, update=False)
