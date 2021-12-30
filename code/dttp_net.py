@@ -176,9 +176,9 @@ class dttp_net(net):
 
     def compute_target(self, x, y, stepsize, refinement_iter):
         if TARGET_TYPE == "DCTP":
-            self.compute_target_DCTP(x, lrb, b_sigma)
+            self.compute_target_DCTP(x, y, stepsize, refinement_iter)
         elif TARGET_TYPE == "DTTP":
-            self.compute_target_DTTP(x, lrb, b_sigma)
+            self.compute_target_DTTP(x, y, stepsize, refinement_iter)
 
     def compute_target_DCTP(self, x, y, stepsize, refinement_iter):
         y_pred = self.forward(x)
@@ -225,9 +225,9 @@ class dttp_net(net):
 
     def update_weights(self, x, lr_ratio, scaling=False):
         if TRAIN_FORWARD_TYPE == "DCTP":
-            self.update_weights_DCTP(x, lrb, b_sigma)
+            self.update_weights_DCTP(x, lr_ratio, scaling=False)
         elif TRAIN_FORWARD_TYPE == "DTTP":
-            self.update_weights_DTTP(x, lrb, b_sigma)
+            self.update_weights_DTTP(x, lr_ratio, scaling=False)
 
     def update_weights_DCTP(self, x, lr_ratio, scaling=False):
         self.forward(x)
