@@ -3,7 +3,7 @@ from dataset import make_regression_dataset, make_classification_dataset
 
 from bp_net import bp_net
 from dttp_net import dttp_net
-from mytp_net import mytp_net
+from mytp_net2 import mytp_net
 
 import os
 import sys
