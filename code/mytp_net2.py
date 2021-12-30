@@ -237,7 +237,6 @@ class mytp_net(net):
 
     def update_weights(self, x, lr_ratio, scaling=False):
         self.forward(x)
-        batch_size = len(x)
         for d in reversed(range(self.depth)):
             loss = torch.norm(self.layers[d].target - self.layers[d].linear_activation)**2
             if self.layers[d].weight.grad is not None:
