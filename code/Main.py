@@ -173,7 +173,8 @@ def main(**kwargs):
                          hid_dim=kwargs["hid_dim"],
                          direct_depth=kwargs["direct_depth"],
                          activation_function=kwargs["activation_function"],
-                         loss_function=loss_function)
+                         loss_function=loss_function,
+                         type=kwargs["type"])
     else:
         sys.tracebacklimit = 0
         raise NotImplementedError(f"algorithm : {kwargs['algorithm']} ?")

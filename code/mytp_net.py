@@ -18,6 +18,16 @@ class mytp_net(net):
         self.direct_depth = kwargs["direct_depth"]
         assert 1 <= self.direct_depth <= self.depth
 
+        if kwargs["type"][1] == "C":
+            self.TRAIN_FORWARD_TYPE = "DCTP"
+        elif kwargs["type"][1] == "T":
+            self.TRAIN_FORWARD_TYPE = "DTTP"
+
+        if kwargs["type"][2] == "C":
+            self.TARGET_TYPE = "DCTP"
+        elif kwargs["type"][2] == "T":
+            self.TARGET_TYPE = "DTTP"
+
     def init_layers(self, in_dim, hid_dim, out_dim, activation_function):
         layers = [None] * self.depth
 
@@ -65,6 +75,7 @@ class mytp_net(net):
                 self.compute_target(x, y, stepsize, refinement_iter, refinement_type)
 
                 ###### monitor start ######
+                """
                 monitor_start_time = time.time()
                 # compute target error
                 for d in range(self.depth - self.direct_depth):
@@ -100,18 +111,11 @@ class mytp_net(net):
                         #print("delta ratio:", d, ratio.min(), ratio.max(), ratio.mean())
                 monitor_end_time = time.time()
                 monitor_time += monitor_end_time - monitor_start_time
+                """
                 ###### monitor end ######
 
                 # train forward
-                h_2, t_2 = self.layers[2].linear_activation, self.layers[2].target
-                move_base = t_2 - h_2
-
                 self.update_weights(x, lr_ratio, scaling=scaling)
-
-                self.forward(x)
-                h_2_ = self.layers[2].linear_activation
-                move = h_2_ - h_2
-                #print("move:", calc_angle(v1, v2).mean(),(torch.norm(move, dim=1) / (torch.norm(move_base, dim=1) + 1e-30)).mean())
 
             end_time = time.time()
             print(f"epochs {e}: {end_time - start_time - monitor_time:.2f}, {monitor_time:.2f}")
@@ -136,6 +140,7 @@ class mytp_net(net):
                     log_dict["time"] = end_time - start_time - monitor_time
 
                     # monitor
+                    """
                     for d in range(self.depth):
                         sub = self.MSELoss(self.layers[d].weight, last_weights[d])
                         shape = self.layers[d].weight.shape
@@ -145,6 +150,7 @@ class mytp_net(net):
                             torch.tensor(target_dist[d]))
                         log_dict[f"target error angle {d}"] = torch.mean(
                             torch.tensor(target_angle[d]))
+                    """
 
                     wandb.log(log_dict)
                 else:
@@ -202,6 +208,31 @@ class mytp_net(net):
                                              self.layers[d].backweight.grad).detach().requires_grad_()
 
     def compute_target(self, x, y, stepsize, refinement_iter, refinement_type):
+        if self.TARGET_TYPE == "DCTP":
+            self.compute_target_DCTP(x, y, stepsize, refinement_iter, "fg")
+        elif self.TARGET_TYPE == "DTTP":
+            self.compute_target_DTTP(x, y, stepsize, refinement_iter, "fg")
+
+    def compute_target_DCTP(self, x, y, stepsize, refinement_iter, refinement_type):
+        y_pred = self.forward(x)
+
+        # initialize
+        loss = self.loss_function(y_pred, y)
+        for d in range(self.depth):
+            if self.layers[d].linear_activation.grad is not None:
+                self.layers[d].linear_activation.grad.zero_()
+        loss.backward(retain_graph=True)
+        with torch.no_grad():
+            for d in range(self.depth - self.direct_depth, self.depth):
+                self.layers[d].target = self.layers[d].linear_activation - \
+                    stepsize * self.layers[d].linear_activation.grad
+            for d in reversed(range(self.depth - self.direct_depth)):
+                self.layers[d].target = self.layers[d + 1].backward(self.layers[d + 1].target)
+                self.layers[d].target += self.layers[d].linear_activation
+                self.layers[d].target -= self.layers[d + 1].backward(
+                    self.layers[d + 1].linear_activation)
+
+    def compute_target_DTTP(self, x, y, stepsize, refinement_iter, refinement_type):
         y_pred = self.forward(x)
 
         # initialize
@@ -235,6 +266,23 @@ class mytp_net(net):
                     self.layers[d].target = self.layers[d + 1].backward(u)
 
     def update_weights(self, x, lr_ratio, scaling=False):
+        if self.TRAIN_FORWARD_TYPE == "DCTP":
+            self.update_weights_DCTP(x, lr_ratio, scaling=False)
+        elif self.TRAIN_FORWARD_TYPE == "DTTP":
+            self.update_weights_DTTP(x, lr_ratio, scaling=False)
+
+    def update_weights_DCTP(self, x, lr_ratio, scaling=False):
+        self.forward(x)
+        batch_size = len(x)
+        for d in reversed(range(self.depth)):
+            loss = torch.norm(self.layers[d].target - self.layers[d].linear_activation)**2
+            if self.layers[d].weight.grad is not None:
+                self.layers[d].weight.grad.zero_()
+            loss.backward(retain_graph=True)
+            self.layers[d].weight = (self.layers[d].weight -
+                                     (1 / batch_size) * self.layers[d].weight.grad).detach().requires_grad_()
+
+    def update_weights_DTTP(self, x, lr_ratio, scaling=False):
         self.forward(x)
         D = self.depth - self.direct_depth
         global_loss = ((self.layers[D].target - self.layers[D].linear_activation)**2).sum(axis=1)
