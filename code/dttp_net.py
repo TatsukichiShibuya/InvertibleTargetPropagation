@@ -83,6 +83,7 @@ class dttp_net(net):
                 self.compute_target(x, y, stepsize, refinement_iter)
 
                 ###### monitor start ######
+                """
                 monitor_start_time = time.time()
                 # compute target error
                 for d in range(self.depth - self.direct_depth):
@@ -98,6 +99,7 @@ class dttp_net(net):
                     print("targetのずれ", d, torch.norm(v3, dim=1).min(), torch.norm(v3, dim=1).max())
                 monitor_end_time = time.time()
                 monitor_time += monitor_end_time - monitor_start_time
+                """
                 ###### monitor end ######
 
                 # train forward
@@ -126,6 +128,7 @@ class dttp_net(net):
                     log_dict["time"] = end_time - start_time - monitor_time
 
                     # monitor
+                    """
                     for d in range(self.depth):
                         sub = self.MSELoss(self.layers[d].weight, last_weights[d])
                         shape = self.layers[d].weight.shape
@@ -135,6 +138,7 @@ class dttp_net(net):
                             torch.tensor(target_dist[d]))
                         log_dict[f"target error angle {d}"] = torch.mean(
                             torch.tensor(target_angle[d]))
+                    """
 
                     wandb.log(log_dict)
                 else:
