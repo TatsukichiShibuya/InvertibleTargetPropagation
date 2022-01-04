@@ -10,9 +10,9 @@ from torch import nn
 import numpy as np
 from tqdm import tqdm
 
-TRAIN_BACKWARD_TYPE = "DCTP"
-TRAIN_FORWARD_TYPE = "DCTP"
-TARGET_TYPE = "DCTP"
+TRAIN_BACKWARD_TYPE = None
+TRAIN_FORWARD_TYPE = None
+TARGET_TYPE = None
 
 
 class dttp_net(net):
@@ -20,6 +20,21 @@ class dttp_net(net):
         super().__init__(**kwargs)
         self.direct_depth = kwargs["direct_depth"]
         assert 1 <= self.direct_depth <= self.depth
+
+        if kwargs["type"][0] == "C":
+            TRAIN_BACKWARD_TYPE = "DCTP"
+        elif kwargs["type"][0] == "T":
+            TRAIN_BACKWARD_TYPE = "DTTP"
+
+        if kwargs["type"][1] == "C":
+            TRAIN_FORWARD_TYPE = "DCTP"
+        elif kwargs["type"][1] == "T":
+            TRAIN_FORWARD_TYPE = "DTTP"
+
+        if kwargs["type"][2] == "C":
+            TARGET_TYPE = "DCTP"
+        elif kwargs["type"][2] == "T":
+            TARGET_TYPE = "DTTP"
 
     def init_layers(self, in_dim, hid_dim, out_dim, activation_function):
         layers = [None] * self.depth
@@ -45,7 +60,10 @@ class dttp_net(net):
                     self.train_backweights(x, lrb, b_sigma)
 
             # reconstruction loss
-            print(f"epochs {e}: {self.reconstruction_loss_of_dataset(train_loader)}")
+            rec_loss = self.reconstruction_loss_of_dataset(train_loader)
+            if torch.isnan(rec_loss).any():
+                sys.exit(1)
+            print(f"epochs {e}: {rec_loss}")
 
         # train forward network
         for e in range(epochs):

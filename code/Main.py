@@ -33,8 +33,7 @@ def get_args():
                         choices=['leakyrelu', 'sigmoid', 'relu'])
 
     # learning algorithm
-    parser.add_argument("--algorithm",  type=str, default="BP",
-                        choices=['BP', 'DTTP', 'MyTP'])
+    parser.add_argument("--algorithm",  type=str, default="BP", choices=['BP', 'DTTP', 'MyTP'])
     parser.add_argument("--epochs",     type=int, default=100)
     parser.add_argument("--batch_size",  type=int, default=256)
     parser.add_argument("--seed",       type=int, default=0)
@@ -60,6 +59,8 @@ def get_args():
     parser.add_argument("--plot", action="store_true")
     parser.add_argument("--log", action="store_true")
     parser.add_argument("--agent", action="store_true")
+    parser.add_argument("--type",  type=str, default="CCC", choices=['CCC', 'CCT', 'CTC', 'CTT',
+                                                                     'TCC', 'TCT', 'TTC', 'TTT'])
 
     args = parser.parse_args()
     return args
@@ -162,7 +163,8 @@ def main(**kwargs):
                          hid_dim=kwargs["hid_dim"],
                          direct_depth=kwargs["direct_depth"],
                          activation_function=kwargs["activation_function"],
-                         loss_function=loss_function)
+                         loss_function=loss_function,
+                         type=kwargs["type"])
     elif kwargs["algorithm"] == "MyTP":
         model = mytp_net(device=device,
                          depth=kwargs["depth"],
