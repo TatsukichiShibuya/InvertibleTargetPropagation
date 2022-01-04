@@ -60,7 +60,8 @@ def get_args():
     parser.add_argument("--log", action="store_true")
     parser.add_argument("--agent", action="store_true")
     parser.add_argument("--type",  type=str, default="CCC", choices=['CCC', 'CCT', 'CTC', 'CTT',
-                                                                     'TCC', 'TCT', 'TTC', 'TTT'])
+                                                                     'TCC', 'TCT', 'TTC', 'TTT',
+                                                                     'ICC', 'ICT', 'ITC', 'ITT'])
 
     args = parser.parse_args()
     return args
