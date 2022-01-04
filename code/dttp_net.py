@@ -10,10 +10,6 @@ from torch import nn
 import numpy as np
 from tqdm import tqdm
 
-TRAIN_BACKWARD_TYPE = None
-TRAIN_FORWARD_TYPE = None
-TARGET_TYPE = None
-
 
 class dttp_net(net):
     def __init__(self, **kwargs):
@@ -22,19 +18,19 @@ class dttp_net(net):
         assert 1 <= self.direct_depth <= self.depth
 
         if kwargs["type"][0] == "C":
-            TRAIN_BACKWARD_TYPE = "DCTP"
+            self.TRAIN_BACKWARD_TYPE = "DCTP"
         elif kwargs["type"][0] == "T":
-            TRAIN_BACKWARD_TYPE = "DTTP"
+            self.TRAIN_BACKWARD_TYPE = "DTTP"
 
         if kwargs["type"][1] == "C":
-            TRAIN_FORWARD_TYPE = "DCTP"
+            self.TRAIN_FORWARD_TYPE = "DCTP"
         elif kwargs["type"][1] == "T":
-            TRAIN_FORWARD_TYPE = "DTTP"
+            self.TRAIN_FORWARD_TYPE = "DTTP"
 
         if kwargs["type"][2] == "C":
-            TARGET_TYPE = "DCTP"
+            self.TARGET_TYPE = "DCTP"
         elif kwargs["type"][2] == "T":
-            TARGET_TYPE = "DTTP"
+            self.TARGET_TYPE = "DTTP"
 
     def init_layers(self, in_dim, hid_dim, out_dim, activation_function):
         layers = [None] * self.depth
@@ -162,9 +158,9 @@ class dttp_net(net):
                             f"\ttarget err angle {d}: {torch.mean(torch.tensor(target_angle[d]))}")
 
     def train_backweights(self, x, lrb, b_sigma):
-        if TRAIN_BACKWARD_TYPE == "DCTP":
+        if self.TRAIN_BACKWARD_TYPE == "DCTP":
             self.train_backweights_DCTP(x, lrb, b_sigma)
-        elif TRAIN_BACKWARD_TYPE == "DTTP":
+        elif self.TRAIN_BACKWARD_TYPE == "DTTP":
             self.train_backweights_DTTP(x, lrb, b_sigma)
 
     def train_backweights_DCTP(self, x, lrb, b_sigma):
@@ -193,9 +189,9 @@ class dttp_net(net):
                                              grad).detach().requires_grad_()
 
     def compute_target(self, x, y, stepsize, refinement_iter):
-        if TARGET_TYPE == "DCTP":
+        if self.TARGET_TYPE == "DCTP":
             self.compute_target_DCTP(x, y, stepsize, refinement_iter)
-        elif TARGET_TYPE == "DTTP":
+        elif self.TARGET_TYPE == "DTTP":
             self.compute_target_DTTP(x, y, stepsize, refinement_iter)
 
     def compute_target_DCTP(self, x, y, stepsize, refinement_iter):
@@ -242,9 +238,9 @@ class dttp_net(net):
                     self.layers[d].target += delta
 
     def update_weights(self, x, lr_ratio, scaling=False):
-        if TRAIN_FORWARD_TYPE == "DCTP":
+        if self.TRAIN_FORWARD_TYPE == "DCTP":
             self.update_weights_DCTP(x, lr_ratio, scaling=False)
-        elif TRAIN_FORWARD_TYPE == "DTTP":
+        elif self.TRAIN_FORWARD_TYPE == "DTTP":
             self.update_weights_DTTP(x, lr_ratio, scaling=False)
 
     def update_weights_DCTP(self, x, lr_ratio, scaling=False):
