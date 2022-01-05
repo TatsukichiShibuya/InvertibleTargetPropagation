@@ -180,14 +180,16 @@ class dttp_net(net):
         for d in range(self.depth - self.direct_depth):
             y = self.layers[d + 1].linear_activation
             gy = self.layers[d + 1].backward(y)
+            loss_before = torch.norm(gy - self.layers[d].linear_activation, dim=1)
+
             x = self.layers[d + 1].backward(y)
             for i in range(100):
                 fx = self.layers[d + 1].forward(x, update=False)
                 gfx = self.layers[d + 1].backward(fx)
                 x = x + gy - gfx
             loss_after = torch.norm(x - self.layers[d].linear_activation, dim=1)
-            loss_before = torch.norm(gy - self.layers[d].linear_activation, dim=1)
-            print(loss_before.max().item(), loss_after.max().item())
+
+            print((loss_after < loss_before).sum())
             ret.append((loss_after < loss_before).all().item())
         return ret
 
