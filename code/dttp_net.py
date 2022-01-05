@@ -177,13 +177,13 @@ class dttp_net(net):
             y = self.layers[d + 1].linear_activation
             gy = self.layers[d + 1].backward(y)
             x = self.layers[d + 1].backward(y)
-            for i in range(100):
+            for i in range(10):
                 fx = self.layers[d + 1].forward(x, update=False)
                 gfx = self.layers[d + 1].backward(fx)
                 x -= gy - gfx
             loss_before = torch.norm(x - self.layers[d].linear_activation, dim=1)
             loss_after = torch.norm(gy - self.layers[d].linear_activation, dim=1)
-            refinement_converge[d].append((loss_before < loss_after).all().item())
+            refinement_converge[d].append((loss_before > loss_after).all().item())
         return refinement_converge
 
     def train_backweights(self, x, lrb, b_sigma):
