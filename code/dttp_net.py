@@ -184,6 +184,7 @@ class dttp_net(net):
             loss_before = torch.norm(x - self.layers[d].linear_activation, dim=1)
             loss_after = torch.norm(gy - self.layers[d].linear_activation, dim=1)
             refinement_converge[d].append((loss_before < loss_after).all().item())
+        return refinement_converge
 
     def train_backweights(self, x, lrb, b_sigma):
         if self.TRAIN_BACKWARD_TYPE == "DCTP":
