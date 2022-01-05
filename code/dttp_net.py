@@ -101,7 +101,7 @@ class dttp_net(net):
                 """
                 ret = self.check_refinement()
                 for d in range(self.depth - self.direct_depth):
-                    refinement_converge[d].append(red[d])
+                    refinement_converge[d].append(ret[d])
 
                 monitor_end_time = time.time()
                 monitor_time += monitor_end_time - monitor_start_time
