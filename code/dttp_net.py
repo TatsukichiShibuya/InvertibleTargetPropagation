@@ -183,7 +183,8 @@ class dttp_net(net):
             for i in range(10):
                 fx = self.layers[d + 1].forward(x, update=False)
                 gfx = self.layers[d + 1].backward(fx)
-                x -= gy - gfx
+                x = x + gy - gfx
+                del fx, gfx
             loss_before = torch.norm(x - self.layers[d].linear_activation, dim=1)
             loss_after = torch.norm(gy - self.layers[d].linear_activation, dim=1)
             ret.append((loss_before > loss_after).all().item())
