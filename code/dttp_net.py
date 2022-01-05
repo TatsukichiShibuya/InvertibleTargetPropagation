@@ -63,7 +63,7 @@ class dttp_net(net):
 
         # train forward network
         for e in range(epochs):
-            # torch.cuda.empty_cache()
+            torch.cuda.empty_cache()
             # monitor
             last_weights = [None] * self.depth
             for d in range(self.depth):
