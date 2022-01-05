@@ -287,6 +287,7 @@ class mytp_net(net):
         D = self.depth - self.direct_depth
         global_loss = ((self.layers[D].target - self.layers[D].linear_activation)**2).sum(axis=1)
         grad_base = 0
+        batch_size = len(x)
         for d in reversed(range(self.depth)):
             # compute grad
             local_loss = ((self.layers[d].target - self.layers[d].linear_activation)**2).sum(axis=1)
@@ -294,7 +295,8 @@ class mytp_net(net):
             lr = lr / len(self.layers[d].target)
             n = self.layers[d].activation / \
                 (self.layers[d].activation**2).sum(axis=1).reshape(-1, 1)
-            grad = (self.layers[d].target - self.layers[d].linear_activation).T @ (n * lr**lr_ratio)
+            grad = (self.layers[d].target -
+                    self.layers[d].linear_activation).T @ (n * (lr / batch_size))
 
             # scaling
             if scaling:
