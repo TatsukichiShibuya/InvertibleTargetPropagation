@@ -189,7 +189,7 @@ class dttp_net(net):
                 x = x + gy - gfx
             loss_after = torch.norm(x - self.layers[d].linear_activation, dim=1)
 
-            print((loss_after < loss_before).sum())
+            print(loss_before.max().item(), loss_after.max().item())
             ret.append((loss_after < loss_before).all().item())
         return ret
 
