@@ -69,6 +69,7 @@ class dttp_net(net):
                 last_weights[d] = self.layers[d].weight
             target_dist = [[] for d in range(self.depth - self.direct_depth)]
             target_angle = [[] for d in range(self.depth - self.direct_depth)]
+            refinement_converge = [[] for d in range(self.depth - self.direct_depth)]
             monitor_time = 0
             start_time = time.time()
 
@@ -83,8 +84,8 @@ class dttp_net(net):
                 self.compute_target(x, y, stepsize, refinement_iter)
 
                 ###### monitor start ######
-                """
                 monitor_start_time = time.time()
+                """
                 # compute target error
                 for d in range(self.depth - self.direct_depth):
                     t = self.layers[d].target
@@ -97,9 +98,11 @@ class dttp_net(net):
                     target_dist[d].append(
                         (torch.norm(v3, dim=1) / (torch.norm(v2, dim=1) + 1e-30)).mean())
                     print("targetのずれ", d, torch.norm(v3, dim=1).min(), torch.norm(v3, dim=1).max())
+                """
+                refinement_converge = self.check_refinement(refinement_converge)
+
                 monitor_end_time = time.time()
                 monitor_time += monitor_end_time - monitor_start_time
-                """
                 ###### monitor end ######
 
                 # train forward
@@ -128,6 +131,9 @@ class dttp_net(net):
                     log_dict["time"] = end_time - start_time - monitor_time
 
                     # monitor
+                    for d in range(self.depth - self.direct_depth):
+                        x = torch.tensor(refinement_converge[d])
+                        log_dict[f"convergence {d}"] = (torch.sum(x) / len(x)).item()
                     """
                     for d in range(self.depth):
                         sub = self.MSELoss(self.layers[d].weight, last_weights[d])
@@ -152,6 +158,10 @@ class dttp_net(net):
                     print(f"\trec loss       : {rec_loss}")
 
                     # monitor
+                    for d in range(self.depth - self.direct_depth):
+                        x = torch.tensor(refinement_converge[d])
+                        print(f"\tconvergence {d}: {(torch.sum(x) / len(x)).item()}")
+                    """
                     for d in range(self.depth):
                         sub = self.MSELoss(self.layers[d].weight, last_weights[d])
                         shape = self.layers[d].weight.shape
@@ -160,6 +170,20 @@ class dttp_net(net):
                         print(f"\ttarget err dist  {d}: {torch.mean(torch.tensor(target_dist[d]))}")
                         print(
                             f"\ttarget err angle {d}: {torch.mean(torch.tensor(target_angle[d]))}")
+                    """
+
+    def check_refinement(self, refinement_converge):
+        for d in range(self.depth - self.direct_depth):
+            y = self.layers[d + 1].linear_activation
+            gy = self.layers[d + 1].backward(y)
+            x = self.layers[d + 1].backward(y)
+            for i in range(100):
+                fx = self.layers[d + 1].forward(x, update=False)
+                gfx = self.layers[d + 1].backward(fx)
+                x -= gy - gfx
+            loss_before = torch.norm(x - self.layers[d].linear_activation, dim=1)
+            loss_after = torch.norm(gy - self.layers[d].linear_activation, dim=1)
+            refinement_converge[d].append((loss_before < loss_after).all().item())
 
     def train_backweights(self, x, lrb, b_sigma):
         if self.TRAIN_BACKWARD_TYPE == "DCTP":
@@ -267,7 +291,7 @@ class dttp_net(net):
         for d in reversed(range(self.depth)):
             # compute grad
             local_loss = ((self.layers[d].target - self.layers[d].linear_activation)**2).sum(axis=1)
-            lr = (global_loss / (local_loss + 1e-30)).reshape(-1, 1)
+            lr = (global_loss / (local_loss + 1e-30)).reshape(-1, 1) if d < D else torch.tensor(1.)
             n = self.layers[d].activation / \
                 (self.layers[d].activation**2).sum(axis=1).reshape(-1, 1)
             grad = (self.layers[d].target -

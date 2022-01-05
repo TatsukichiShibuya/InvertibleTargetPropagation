@@ -27,7 +27,7 @@ def get_args():
     # model architecture
     parser.add_argument("--depth",      type=int, default=4)
     parser.add_argument("--in_dim",     type=int, default=784)
-    parser.add_argument("--hid_dim",    type=int, default=256)
+    parser.add_argument("--hid_dim",    type=int, default=784)
     parser.add_argument("--out_dim",    type=int, default=10)
     parser.add_argument("--activation_function", type=str, default="leakyrelu",
                         choices=['leakyrelu', 'sigmoid', 'relu'])
@@ -35,8 +35,8 @@ def get_args():
     # learning algorithm
     parser.add_argument("--algorithm",  type=str, default="BP", choices=['BP', 'DTTP', 'MyTP'])
     parser.add_argument("--epochs",     type=int, default=100)
-    parser.add_argument("--batch_size",  type=int, default=256)
-    parser.add_argument("--seed",       type=int, default=0)
+    parser.add_argument("--batch_size",  type=int, default=128)
+    parser.add_argument("--seed",       type=int, default=1)
 
     # parameters used in BP
     parser.add_argument("--learning_rate", "-lr", type=float, default=1e-6)
