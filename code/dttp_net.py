@@ -99,7 +99,9 @@ class dttp_net(net):
                         (torch.norm(v3, dim=1) / (torch.norm(v2, dim=1) + 1e-30)).mean())
                     print("targetのずれ", d, torch.norm(v3, dim=1).min(), torch.norm(v3, dim=1).max())
                 """
-                self.check_refinement(refinement_converge)
+                ret = self.check_refinement()
+                for d in range(self.depth - self.direct_depth):
+                    refinement_converge[d].append(red[d])
 
                 monitor_end_time = time.time()
                 monitor_time += monitor_end_time - monitor_start_time
@@ -172,7 +174,8 @@ class dttp_net(net):
                             f"\ttarget err angle {d}: {torch.mean(torch.tensor(target_angle[d]))}")
                     """
 
-    def check_refinement(self, refinement_converge):
+    def check_refinement(self):
+        ret = []
         for d in range(self.depth - self.direct_depth):
             y = self.layers[d + 1].linear_activation
             gy = self.layers[d + 1].backward(y)
@@ -183,7 +186,8 @@ class dttp_net(net):
                 x -= gy - gfx
             loss_before = torch.norm(x - self.layers[d].linear_activation, dim=1)
             loss_after = torch.norm(gy - self.layers[d].linear_activation, dim=1)
-            refinement_converge[d].append((loss_before > loss_after).all().item())
+            ret.append((loss_before > loss_after).all().item())
+        return ret
 
     def train_backweights(self, x, lrb, b_sigma):
         if self.TRAIN_BACKWARD_TYPE == "DCTP":
