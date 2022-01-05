@@ -110,7 +110,7 @@ class mytp_net(net):
                         #print("delta      :", d, delta.min(), delta.max(), delta.mean())
                         #print("delta ratio:", d, ratio.min(), ratio.max(), ratio.mean())
                 monitor_end_time = time.time()
-                monitor_time += monitor_end_time - monitor_start_time
+                monitor_time = monitor_time + monitor_end_time - monitor_start_time
                 """
                 ###### monitor end ######
 
@@ -185,20 +185,21 @@ class mytp_net(net):
                 if b_loss == "gf":
                     # minimize |q-g(f(q))|^2
                     q = self.layers[d - 1].linear_activation.detach().clone()
-                    q += torch.normal(0, b_sigma, size=q.shape, device=self.device)
+                    q = q + torch.normal(0, b_sigma, size=q.shape, device=self.device)
                     h = self.layers[d].backward(self.layers[d].forward(q, update=False))
                     loss = self.MSELoss(h, q)
                 elif b_loss == "fg":
                     # minimize |q-f(g(q))|^2
                     q = self.layers[d].linear_activation.detach().clone()
-                    q += torch.normal(0, b_sigma, size=q.shape, device=self.device)
+                    q = q + torch.normal(0, b_sigma, size=q.shape, device=self.device)
                     h = self.layers[d].forward(self.layers[d].backward(q), update=False)
                     loss = self.MSELoss(h, q)
                 elif b_loss == "eye":
                     # minimize |I-WO|^2 + |I-OW|^2
                     eye = torch.eye(self.layers[d].weight.shape[0], device=self.device)
                     loss = torch.norm(eye - self.layers[d].weight @ self.layers[d].backweight)**2
-                    loss += torch.norm(eye - self.layers[d].backweight @ self.layers[d].weight)**2
+                    loss = loss + \
+                        torch.norm(eye - self.layers[d].backweight @ self.layers[d].weight)**2
 
                 if self.layers[d].backweight.grad is not None:
                     self.layers[d].backweight.grad.zero_()
@@ -228,8 +229,8 @@ class mytp_net(net):
                     stepsize * self.layers[d].linear_activation.grad
             for d in reversed(range(self.depth - self.direct_depth)):
                 self.layers[d].target = self.layers[d + 1].backward(self.layers[d + 1].target)
-                self.layers[d].target += self.layers[d].linear_activation
-                self.layers[d].target -= self.layers[d + 1].backward(
+                self.layers[d].target = self.layers[d].target + self.layers[d].linear_activation
+                self.layers[d].target = self.layers[d].target - self.layers[d + 1].backward(
                     self.layers[d + 1].linear_activation)
 
     def compute_target_DTTP(self, x, y, stepsize, refinement_iter, refinement_type):
@@ -255,7 +256,7 @@ class mytp_net(net):
                         gt = self.layers[d + 1].backward(self.layers[d + 1].target)
                         ft = self.layers[d + 1].forward(self.layers[d].target, update=False)
                         gft = self.layers[d + 1].backward(ft)
-                        self.layers[d].target += gt - gft
+                        self.layers[d].target = self.layers[d].target + gt - gft
             elif refinement_type == "fg":
                 for d in reversed(range(self.depth - self.direct_depth)):
                     u = self.layers[d + 1].target
@@ -328,5 +329,5 @@ class mytp_net(net):
         rec_loss = 0
         for x, y in data_loader:
             x, y = x.to(self.device), y.to(self.device)
-            rec_loss += self.reconstruction_loss(x)
+            rec_loss = rec_loss + self.reconstruction_loss(x)
         return rec_loss / len(data_loader.dataset)

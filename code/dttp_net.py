@@ -105,7 +105,7 @@ class dttp_net(net):
                     refinement_converge[d].append(ret[d])
 
                 monitor_end_time = time.time()
-                monitor_time += monitor_end_time - monitor_start_time
+                monitor_time = monitor_time + monitor_end_time - monitor_start_time
                 ###### monitor end ######
 
                 # train forward
@@ -201,7 +201,7 @@ class dttp_net(net):
         batch_size = len(x)
         for d in reversed(range(1, self.depth - self.direct_depth + 1)):
             q = self.layers[d - 1].linear_activation.detach().clone()
-            q += torch.normal(0, b_sigma, size=q.shape, device=self.device)
+            q = q + torch.normal(0, b_sigma, size=q.shape, device=self.device)
             h = self.layers[d].backward(self.layers[d].forward(q, update=False))
             loss = self.MSELoss(h, q)
             if self.layers[d].backweight.grad is not None:
@@ -242,9 +242,9 @@ class dttp_net(net):
                     stepsize * self.layers[d].linear_activation.grad
             for d in reversed(range(self.depth - self.direct_depth)):
                 self.layers[d].target = self.layers[d + 1].backward(self.layers[d + 1].target)
-                self.layers[d].target += self.layers[d].linear_activation
-                self.layers[d].target -= self.layers[d + 1].backward(
-                    self.layers[d + 1].linear_activation)
+                self.layers[d].target = self.layers[d].target + self.layers[d].linear_activation
+                self.layers[d].target = self.layers[d].target - \
+                    self.layers[d + 1].backward(self.layers[d + 1].linear_activation)
 
     def compute_target_DTTP(self, x, y, stepsize, refinement_iter):
         y_pred = self.forward(x)
@@ -267,8 +267,7 @@ class dttp_net(net):
                     gt = self.layers[d + 1].backward(self.layers[d + 1].target)
                     ft = self.layers[d + 1].forward(self.layers[d].target, update=False)
                     gft = self.layers[d + 1].backward(ft)
-                    delta = gt - gft
-                    self.layers[d].target += delta
+                    self.layers[d].target = self.layers[d].target + gt - gft
 
     def update_weights(self, x, lr_ratio, scaling=False):
         if self.TRAIN_FORWARD_TYPE == "DCTP":
@@ -320,5 +319,5 @@ class dttp_net(net):
         rec_loss = 0
         for x, y in data_loader:
             x, y = x.to(self.device), y.to(self.device)
-            rec_loss += self.reconstruction_loss(x)
+            rec_loss = rec_loss + self.reconstruction_loss(x)
         return rec_loss / len(data_loader.dataset)
