@@ -10,19 +10,19 @@ eval "$(pyenv init --path)"
 eval "$(pyenv init -)"
 eval "$(pyenv virtualenv-init -)"
 if [ "${1}" = "CCC" ];then
-  wandb agent tatsukichishibuya/InvertibleTargetPropagation/laf3350d
+  wandb agent tatsukichishibuya/InvertibleTargetPropagation/t6ghjn64
 elif [ "${1}" = "CCT" ];then
-  wandb agent tatsukichishibuya/InvertibleTargetPropagation/08kjgdq0
+  wandb agent tatsukichishibuya/InvertibleTargetPropagation/p24cllj1
 elif [ "${1}" = "CTC" ];then
-  wandb agent tatsukichishibuya/InvertibleTargetPropagation/n5tmufzl
+  wandb agent tatsukichishibuya/InvertibleTargetPropagation/ltp2e5j4
 elif [ "${1}" = "CTT" ];then
-  wandb agent tatsukichishibuya/InvertibleTargetPropagation/4i3pgy1a
+  wandb agent tatsukichishibuya/InvertibleTargetPropagation/tmpsr9zk
 elif [ "${1}" = "TCC" ];then
-  wandb agent tatsukichishibuya/InvertibleTargetPropagation/y0gmadlu
+  wandb agent tatsukichishibuya/InvertibleTargetPropagation/suabwuts
 elif [ "${1}" = "TCT" ];then
-  wandb agent tatsukichishibuya/InvertibleTargetPropagation/e4fqv2jk
+  wandb agent tatsukichishibuya/InvertibleTargetPropagation/gps4td84
 elif [ "${1}" = "TTC" ];then
-  wandb agent tatsukichishibuya/InvertibleTargetPropagation/w41a55s3
+  wandb agent tatsukichishibuya/InvertibleTargetPropagation/s0ryywq1
 elif [ "${1}" = "TTT" ];then
-  wandb agent tatsukichishibuya/InvertibleTargetPropagation/hy2tkarj
+  wandb agent tatsukichishibuya/InvertibleTargetPropagation/9a04ttm5
 fi
