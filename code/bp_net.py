@@ -59,11 +59,12 @@ class bp_net(net):
                     log_dict["time"] = end_time - start_time
 
                     # monitor
+                    """
                     for d in range(self.depth):
                         sub = self.MSELoss(self.layers[d].weight, last_weights[d])
                         shape = self.layers[d].weight.shape
                         log_dict[f"weight moving {d}"] = float(sub) / (shape[0] * shape[1])
-
+                    """
                     wandb.log(log_dict)
                 else:
                     # results
@@ -75,12 +76,14 @@ class bp_net(net):
                         print(f"\tvalid acc      : {valid_acc}")
 
                     # monitor
+                    """
                     for d in range(self.depth):
                         sub = self.MSELoss(self.layers[d].weight, last_weights[d])
                         shape = self.layers[d].weight.shape
                         print(f"\tweight moving {d}: {float(sub) / (shape[0] * shape[1])}")
                     for d in range(self.depth):
                         print(f"\tcond {d}: {torch.linalg.cond(self.layers[d].weight)}")
+                    """
 
     def update_weights(self, y, y_pred, lr):
         loss = self.loss_function(y_pred, y)
