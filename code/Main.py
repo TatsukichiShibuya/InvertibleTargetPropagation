@@ -42,11 +42,11 @@ def get_args():
     parser.add_argument("--learning_rate", "-lr", type=float, default=1e-6)
 
     # parameters used in DTTP and MyTP
-    parser.add_argument("--stepsize",   type=float, default=2e-5)
+    parser.add_argument("--stepsize",   type=float)
     parser.add_argument("--lr_ratio",   type=float, default=1)
     parser.add_argument("--weight_scaling", action="store_true")
-    parser.add_argument("--b_epochs",   type=int, default=0)
-    parser.add_argument("--b_sigma",    type=float, default=0.01)
+    parser.add_argument("--b_epochs",   type=int, default=5)
+    parser.add_argument("--b_sigma",    type=float, default=0.08)
     parser.add_argument("--b_loss",     type=str, default="gf",
                         choices=['gf', 'fg', 'eye', 'inv'])
     parser.add_argument("--direct_depth", type=int, default=2)
