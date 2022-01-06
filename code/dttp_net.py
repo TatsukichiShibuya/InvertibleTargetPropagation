@@ -188,7 +188,10 @@ class dttp_net(net):
                 gfx = self.layers[d + 1].backward(fx)
                 x = x + gy - gfx
             loss_after = torch.norm(x - self.layers[d].linear_activation, dim=1)
-            ret.append((loss_after < loss_before).all().item())
+
+            flag1 = (loss_after < loss_before)
+            flag2 = (loss_after < 1e-3)
+            ret.append(torch.logical_or(flag1, flag2).all().item())
         return ret
 
     def train_backweights(self, x, lrb, b_sigma):
