@@ -299,7 +299,10 @@ class dttp_net(net):
         for d in reversed(range(self.depth)):
             # compute grad
             local_loss = ((self.layers[d].target - self.layers[d].linear_activation)**2).sum(axis=1)
-            lr = (global_loss / (local_loss + 1e-30)).reshape(-1, 1) if d < D else torch.tensor(1.)
+            if TARGET_TYPE == "DTTP" and d < D:
+                lr = (global_loss / (local_loss + 1e-30)).reshape(-1, 1)
+            else:
+                lr = torch.tensor(1.)
             n = self.layers[d].activation / \
                 (self.layers[d].activation**2).sum(axis=1).reshape(-1, 1)
             grad = (self.layers[d].target -
