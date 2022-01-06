@@ -65,45 +65,26 @@ class dttp_net(net):
         for e in range(epochs):
             torch.cuda.empty_cache()
             # monitor
-            last_weights = [None] * self.depth
-            for d in range(self.depth):
-                last_weights[d] = self.layers[d].weight
-            target_dist = [[] for d in range(self.depth - self.direct_depth)]
-            target_angle = [[] for d in range(self.depth - self.direct_depth)]
             refinement_converge = [[] for d in range(self.depth - self.direct_depth)]
             monitor_time = 0
             start_time = time.time()
 
+            # train backward
+            for x, y in train_loader:
+                x, y = x.to(self.device), y.to(self.device)
+                self.train_backweights(x, lrb, b_sigma)
+
             # train forward
             for x, y in train_loader:
                 x, y = x.to(self.device), y.to(self.device)
-                # train backward
-                for be in range(b_epochs):
-                    self.train_backweights(x, lrb, b_sigma)
-
                 # compute target
                 self.compute_target(x, y, stepsize, refinement_iter)
 
                 ###### monitor start ######
                 monitor_start_time = time.time()
-                """
-                # compute target error
-                for d in range(self.depth - self.direct_depth):
-                    t = self.layers[d].target
-                    for _d in range(d + 1, self.depth - self.direct_depth + 1):
-                        t = self.layers[_d].forward(t, update=False)
-                    h = self.layers[self.depth - self.direct_depth].linear_activation
-                    t_ = self.layers[self.depth - self.direct_depth].target
-                    v1, v2, v3 = t - h, t_ - h, t - t_
-                    target_angle[d].append(calc_angle(v1, v2).mean())
-                    target_dist[d].append(
-                        (torch.norm(v3, dim=1) / (torch.norm(v2, dim=1) + 1e-30)).mean())
-                    print("targetのずれ", d, torch.norm(v3, dim=1).min(), torch.norm(v3, dim=1).max())
-                """
                 ret = self.check_refinement()
                 for d in range(self.depth - self.direct_depth):
                     refinement_converge[d].append(ret[d])
-
                 monitor_end_time = time.time()
                 monitor_time = monitor_time + monitor_end_time - monitor_start_time
                 ###### monitor end ######
@@ -137,17 +118,6 @@ class dttp_net(net):
                     for d in range(self.depth - self.direct_depth):
                         x = torch.tensor(refinement_converge[d])
                         log_dict[f"convergence {d}"] = (torch.sum(x) / len(x)).item()
-                    """
-                    for d in range(self.depth):
-                        sub = self.MSELoss(self.layers[d].weight, last_weights[d])
-                        shape = self.layers[d].weight.shape
-                        log_dict[f"weight moving {d}"] = float(sub) / (shape[0] * shape[1])
-                    for d in range(self.depth - self.direct_depth):
-                        log_dict[f"target error dist {d}"] = torch.mean(
-                            torch.tensor(target_dist[d]))
-                        log_dict[f"target error angle {d}"] = torch.mean(
-                            torch.tensor(target_angle[d]))
-                    """
 
                     wandb.log(log_dict)
                 else:
@@ -164,16 +134,6 @@ class dttp_net(net):
                     for d in range(self.depth - self.direct_depth):
                         x = torch.tensor(refinement_converge[d])
                         print(f"\tconvergence {d}: {(torch.sum(x) / len(x)).item()}")
-                    """
-                    for d in range(self.depth):
-                        sub = self.MSELoss(self.layers[d].weight, last_weights[d])
-                        shape = self.layers[d].weight.shape
-                        print(f"\tweight moving {d}: {float(sub) / (shape[0] * shape[1])}")
-                    for d in range(self.depth - self.direct_depth):
-                        print(f"\ttarget err dist  {d}: {torch.mean(torch.tensor(target_dist[d]))}")
-                        print(
-                            f"\ttarget err angle {d}: {torch.mean(torch.tensor(target_angle[d]))}")
-                    """
 
     def check_refinement(self):
         ret = []
@@ -183,7 +143,7 @@ class dttp_net(net):
             loss_before = torch.norm(gy - self.layers[d].linear_activation, dim=1)
 
             x = self.layers[d + 1].backward(y)
-            for i in range(100):
+            for i in range(10):
                 fx = self.layers[d + 1].forward(x, update=False)
                 gfx = self.layers[d + 1].backward(fx)
                 x = x + gy - gfx
