@@ -67,10 +67,12 @@ class dttp_net(net):
             torch.cuda.empty_cache()
             # monitor
             refinement_converge = [[] for d in range(self.depth - self.direct_depth)]
+            """
             target_ratio_list = [torch.tensor([], device=self.device)
                                  for d in range(self.depth - self.direct_depth)]
             target_angle_list = [torch.tensor([], device=self.device)
                                  for d in range(self.depth - self.direct_depth)]
+            """
             monitor_time = 0
             start_time = time.time()
 
@@ -91,7 +93,7 @@ class dttp_net(net):
                 ret = self.check_refinement()
                 for d in range(self.depth - self.direct_depth):
                     refinement_converge[d].append(ret[d])
-
+                """
                 D = self.depth - self.direct_depth
                 for d1 in range(D):
                     t = self.layers[d1].target
@@ -105,7 +107,7 @@ class dttp_net(net):
                     target_angle_list[d1] = torch.cat([target_angle_list[d1], target_angle])
                     print(f"ratio : < {target_ratio.max()}")
                     print(f"angle : < {target_angle.max()}")
-
+                """
                 monitor_end_time = time.time()
                 monitor_time = monitor_time + monitor_end_time - monitor_start_time
                 ###### monitor end ######
@@ -140,8 +142,10 @@ class dttp_net(net):
                     for d in range(self.depth - self.direct_depth):
                         x = torch.tensor(refinement_converge[d])
                         log_dict[f"convergence {d}"] = (torch.sum(x) / len(x)).item()
+                        """
                         log_dict[f"target ratio {d}"] = torch.mean(target_ratio_list[d]).item()
                         log_dict[f"target angle {d}"] = torch.mean(target_angle_list[d]).item()
+                        """
 
                     wandb.log(log_dict)
                 else:
@@ -158,8 +162,10 @@ class dttp_net(net):
                     for d in range(self.depth - self.direct_depth):
                         x = torch.tensor(refinement_converge[d])
                         print(f"\tconvergence {d}: {(torch.sum(x) / len(x)).item()}")
+                        """
                         print(f"\ttarget ratio {d}: {torch.mean(target_ratio_list[d]).item()}")
                         print(f"\ttarget angle {d}: {torch.mean(target_angle_list[d]).item()}")
+                        """
 
     def check_refinement(self):
         ret = []
