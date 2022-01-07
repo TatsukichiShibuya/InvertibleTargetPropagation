@@ -99,7 +99,7 @@ class dttp_net(net):
                         t = self.layers[d2].forward(t, update=False)
                     v1 = self.layers[D].linear_activation - t
                     v2 = self.layers[D].linear_activation - self.layers[D].target
-                    target_ratio = (torch.norm(v1, dim=1) + 1e-30) / (torch.norm(v2, dim) + 1e-30)
+                    target_ratio = (torch.norm(v1, dim=1) + 1e-30) / (torch.norm(v2, dim=1) + 1e-30)
                     target_ratio_list[d1] = torch.cat([target_ratio_list[d1], target_ratio])
                     target_angle = calc_angle(v1, v2)
                     target_angle_list[d1] = torch.cat([target_angle_list[d1], target_angle])
