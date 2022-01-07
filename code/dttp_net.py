@@ -58,6 +58,7 @@ class dttp_net(net):
             # reconstruction loss
             rec_loss = self.reconstruction_loss_of_dataset(train_loader)
             if torch.isnan(rec_loss).any():
+                print("ERROR: rec loss diverged")
                 sys.exit(1)
             print(f"epochs {e}: {rec_loss}")
 
@@ -102,6 +103,7 @@ class dttp_net(net):
                 valid_loss, valid_acc = self.test(valid_loader)
                 rec_loss = self.reconstruction_loss_of_dataset(train_loader)
                 if torch.isnan(rec_loss).any():
+                    print("ERROR: rec loss diverged")
                     sys.exit(1)
 
                 if log:
