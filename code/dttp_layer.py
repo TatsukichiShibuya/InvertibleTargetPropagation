@@ -20,6 +20,8 @@ class dttp_layer:
             self.activation_function = nn.Sigmoid()
         elif activation_function == "linear":
             self.activation_function = (lambda x: x)
+        elif activation_function == "tanh":
+            self.activation_function = nn.Tanh()
         else:
             sys.tracebacklimit = 0
             raise NotImplementedError(f"activation_function : {activation_function} ?")

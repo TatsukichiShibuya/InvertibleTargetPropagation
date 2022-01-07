@@ -30,7 +30,7 @@ def get_args():
     parser.add_argument("--hid_dim",    type=int, default=256)
     parser.add_argument("--out_dim",    type=int, default=10)
     parser.add_argument("--activation_function", type=str, default="leakyrelu",
-                        choices=['leakyrelu', 'sigmoid', 'relu'])
+                        choices=['leakyrelu', 'sigmoid', 'relu', 'tanh'])
 
     # learning algorithm
     parser.add_argument("--algorithm",  type=str, default="BP", choices=['BP', 'DTTP', 'MyTP'])
