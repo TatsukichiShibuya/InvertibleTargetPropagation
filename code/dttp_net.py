@@ -72,7 +72,8 @@ class dttp_net(net):
             # train backward
             for x, y in train_loader:
                 x, y = x.to(self.device), y.to(self.device)
-                self.train_backweights(x, lrb, b_sigma)
+                for be in range(b_epochs):
+                    self.train_backweights(x, lrb, b_sigma)
 
             # train forward
             for x, y in train_loader:
