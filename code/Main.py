@@ -50,7 +50,7 @@ def get_args():
     parser.add_argument("--b_loss",     type=str, default="gf",
                         choices=['gf', 'fg', 'eye', 'inv'])
     parser.add_argument("--direct_depth", type=int, default=2)
-    parser.add_argument("--refinement_iter", type=int, default=0)
+    parser.add_argument("--refinement_iter", type=int, default=10)
     parser.add_argument("--refinement_type", type=str, default="gf",
                         choices=['gf', 'fg'])
     parser.add_argument("--learning_rate_for_backward", "-lrb", type=float, default=1e-2)
