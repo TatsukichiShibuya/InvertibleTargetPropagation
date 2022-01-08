@@ -71,6 +71,16 @@ class dttp_net(net):
                                  for d in range(self.depth - self.direct_depth)]
             target_angle_list = [torch.tensor([], device=self.device)
                                  for d in range(self.depth - self.direct_depth)]
+
+            move_ratio_DCTP_list = [torch.tensor([], device=self.device)
+                                    for d in range(self.depth)]
+            move_angle_DCTP_list = [torch.tensor([], device=self.device)
+                                    for d in range(self.depth)]
+            move_ratio_DTTP_list = [torch.tensor([], device=self.device)
+                                    for d in range(self.depth)]
+            move_angle_DTTP_list = [torch.tensor([], device=self.device)
+                                    for d in range(self.depth)]
+
             monitor_time = 0
             start_time = time.time()
 
@@ -103,15 +113,29 @@ class dttp_net(net):
                     target_ratio_list[d1] = torch.cat([target_ratio_list[d1], target_ratio])
                     target_angle = calc_angle(v1, v2)
                     target_angle_list[d1] = torch.cat([target_angle_list[d1], target_angle])
-                    #print(f"ratio : < {target_ratio.max()}")
-                    #print(f"angle : < {target_angle.max()}")
 
                 monitor_end_time = time.time()
                 monitor_time = monitor_time + monitor_end_time - monitor_start_time
                 ###### monitor end ######
 
                 # train forward
-                self.update_weights(x, lr_ratio, scaling)
+                move_ratio_DCTP, move_ratio_DTTP, move_angle_DCTP, move_angle_DTTP = self.update_weights(
+                    x, lr_ratio, scaling)
+
+                ###### monitor start ######
+                monitor_start_time = time.time()
+                for d in range(self.depth):
+                    move_ratio_DCTP_list[d] = torch.cat([move_ratio_DCTP_list[d],
+                                                         move_ratio_DCTP[d]])
+                    move_ratio_DTTP_list[d] = torch.cat([move_ratio_DTTP_list[d],
+                                                         move_ratio_DTTP[d]])
+                    move_angle_DCTP_list[d] = torch.cat([move_angle_DCTP_list[d],
+                                                         move_angle_DCTP[d]])
+                    move_angle_DTTP_list[d] = torch.cat([move_angle_DTTP_list[d],
+                                                         move_angle_DTTP[d]])
+                monitor_end_time = time.time()
+                monitor_time = monitor_time + monitor_end_time - monitor_start_time
+                ###### monitor end ######
 
             end_time = time.time()
             print(f"epochs {e}: {end_time - start_time - monitor_time:.2f}, {monitor_time:.2f}")
@@ -142,6 +166,15 @@ class dttp_net(net):
                         log_dict[f"convergence {d}"] = (torch.sum(x) / len(x)).item()
                         log_dict[f"target ratio {d}"] = torch.mean(target_ratio_list[d]).item()
                         log_dict[f"target angle {d}"] = torch.mean(target_angle_list[d]).item()
+                    for d in range(self.depth):
+                        log_dict[f"move ratio DCTP {d}"] = torch.mean(
+                            move_ratio_DCTP_list[d]).item()
+                        log_dict[f"move angle DCTP {d}"] = torch.mean(
+                            move_angle_DCTP_list[d]).item()
+                        log_dict[f"move ratio DTTP {d}"] = torch.mean(
+                            move_ratio_DTTP_list[d]).item()
+                        log_dict[f"move angle DTTP {d}"] = torch.mean(
+                            move_angle_DTTP_list[d]).item()
 
                     wandb.log(log_dict)
                 else:
@@ -160,6 +193,16 @@ class dttp_net(net):
                         print(f"\tconvergence {d}: {(torch.sum(x) / len(x)).item()}")
                         print(f"\ttarget ratio {d}: {torch.mean(target_ratio_list[d]).item()}")
                         print(f"\ttarget angle {d}: {torch.mean(target_angle_list[d]).item()}")
+
+                    for d in range(self.depth):
+                        print(
+                            f"\tmove ratio DCTP {d}: {torch.mean(move_ratio_DCTP_list[d]).item()}")
+                        print(
+                            f"\tmove angle DCTP {d}: {torch.mean(move_angle_DCTP_list[d]).item()}")
+                        print(
+                            f"\tmove ratio DTTP {d}: {torch.mean(move_ratio_DTTP_list[d]).item()}")
+                        print(
+                            f"\tmove angle DTTP {d}: {torch.mean(move_angle_DTTP_list[d]).item()}")
 
     def check_refinement(self):
         ret = []
@@ -260,10 +303,60 @@ class dttp_net(net):
                     self.layers[d].target = self.layers[d].target + gt - gft
 
     def update_weights(self, x, lr_ratio, scaling=False):
+        move_target = [None for d in range(self.depth)]
+        move_DCTP = [None for d in range(self.depth)]
+        move_DTTP = [None for d in range(self.depth)]
+        for d in range(self.depth):
+            move_target[d] = self.layers[d].target - self.layers[d].linear_activation
+
+        weights = [None for d in range(self.depth)]
+        for d in range(self.depth):
+            weights[d] = self.layers[d].weight
+
         if self.TRAIN_FORWARD_TYPE == "DCTP":
-            self.update_weights_DCTP(x, lr_ratio, scaling=False)
-        elif self.TRAIN_FORWARD_TYPE == "DTTP":
             self.update_weights_DTTP(x, lr_ratio, scaling=False)
+            for d in range(self.depth):
+                h_previous = self.layers[d - 1].linear_activation if d > 0 else x
+                h_after = self.layers[d].forward(h_previous, update=False)
+                move_DTTP[d] = h_after - self.layers[d].linear_activation
+
+            for d in range(self.depth):
+                self.layers[d].weight = weights[d].detach().requires_grad_()
+
+            self.update_weights_DCTP(x, lr_ratio, scaling=False)
+            for d in range(self.depth):
+                h_previous = self.layers[d - 1].linear_activation if d > 0 else x
+                h_after = self.layers[d].forward(h_previous, update=False)
+                move_DCTP[d] = h_after - self.layers[d].linear_activation
+        elif self.TRAIN_FORWARD_TYPE == "DTTP":
+            self.update_weights_DCTP(x, lr_ratio, scaling=False)
+            for d in range(self.depth):
+                h_previous = self.layers[d - 1].linear_activation if d > 0 else x
+                h_after = self.layers[d].forward(h_previous, update=False)
+                move_DCTP[d] = h_after - self.layers[d].linear_activation
+
+            for d in range(self.depth):
+                self.layers[d].weight = weights[d].detach().requires_grad_()
+
+            self.update_weights_DTTP(x, lr_ratio, scaling=False)
+            for d in range(self.depth):
+                h_previous = self.layers[d - 1].linear_activation if d > 0 else x
+                h_after = self.layers[d].forward(h_previous, update=False)
+                move_DTTP[d] = h_after - self.layers[d].linear_activation
+
+        move_ratio_DCTP = [None for d in range(self.depth)]
+        move_ratio_DTTP = [None for d in range(self.depth)]
+        move_angle_DCTP = [None for d in range(self.depth)]
+        move_angle_DTTP = [None for d in range(self.depth)]
+        for d in range(self.depth):
+            move_ratio_DCTP[d] = (torch.norm(move_DCTP[d], dim=1) + 1e-30) / \
+                (torch.norm(move_target[d], dim=1) + 1e-30)
+            move_ratio_DTTP[d] = (torch.norm(move_DTTP[d], dim=1) + 1e-30) / \
+                (torch.norm(move_target[d], dim=1) + 1e-30)
+            move_angle_DCTP[d] = calc_angle(move_DCTP[d], move_target[d])
+            move_angle_DTTP[d] = calc_angle(move_DTTP[d], move_target[d])
+
+        return move_ratio_DCTP, move_ratio_DTTP, move_angle_DCTP, move_angle_DTTP
 
     def update_weights_DCTP(self, x, lr_ratio, scaling=False):
         self.forward(x)
