@@ -25,4 +25,6 @@ elif [ "${1}" = "TTC" ];then
   wandb agent tatsukichishibuya/InvertibleTargetPropagation/uvkckpcd
 elif [ "${1}" = "TTT" ];then
   wandb agent tatsukichishibuya/InvertibleTargetPropagation/km8zrb82
+elif [ "${1}" = "noref" ];then
+  wandb agent tatsukichishibuya/InvertibleTargetPropagation/zojyslxl
 fi

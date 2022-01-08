@@ -90,6 +90,15 @@ def main(**kwargs):
                       "activation function": kwargs["activation_function"]}
             if kwargs["algorithm"] in ["DTTP", "MyTP"]:
                 config["direct depth"] = kwargs["direct_depth"]
+                config["stepsize"] = kwargs["stepsize"]
+                config["lr ratio"] = kwargs["lr_ratio"]
+                config["learning rate (backward)"] = kwargs["learning_rate_for_backward"]
+                config["epochs (backward)"] = kwargs["b_epochs"]
+                config["sigma (backward)"] = kwargs["b_sigma"]
+                config["refinement iteration"] = kwargs["refinement_iter"]
+                if kwargs["algorithm"] == "MyTP":
+                    config["refinement type"] = kwargs["refinement_type"]
+                    config["loss (backward)"] = kwargs["b_loss"]
             wandb.init(config=config)
         else:
             wandb.init(project="InvertibleTargetPropagation", entity="tatsukichishibuya")
