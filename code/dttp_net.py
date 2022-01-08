@@ -349,12 +349,14 @@ class dttp_net(net):
         move_angle_DCTP = [None for d in range(self.depth)]
         move_angle_DTTP = [None for d in range(self.depth)]
         for d in range(self.depth):
-            move_ratio_DCTP[d] = (torch.norm(move_DCTP[d], dim=1) + 1e-30) / \
-                (torch.norm(move_target[d], dim=1) + 1e-30)
-            move_ratio_DTTP[d] = (torch.norm(move_DTTP[d], dim=1) + 1e-30) / \
-                (torch.norm(move_target[d], dim=1) + 1e-30)
-            move_angle_DCTP[d] = calc_angle(move_DCTP[d], move_target[d])
-            move_angle_DTTP[d] = calc_angle(move_DTTP[d], move_target[d])
+            move_target_norm = torch.norm(move_target[d], dim=1)
+            nonzero = (move_target_norm > 1e-10)
+            move_DCTP_norm = torch.norm(move_DCTP[d], dim=1)
+            move_DTTP_norm = torch.norm(move_DTTP[d], dim=1)
+            move_ratio_DCTP[d] = move_DCTP_norm[nonzero] / move_target_norm[nonzero]
+            move_ratio_DTTP[d] = move_DTTP_norm[nonzero] / move_target_norm[nonzero]
+            move_angle_DCTP[d] = calc_angle(move_DCTP[d][nonzero], move_target[d][nonzero])
+            move_angle_DTTP[d] = calc_angle(move_DTTP[d][nonzero], move_target[d][nonzero])
 
         return move_ratio_DCTP, move_ratio_DTTP, move_angle_DCTP, move_angle_DTTP
 
