@@ -1,6 +1,8 @@
 import torch
 from torch import nn
 
+import sys
+
 
 class bp_layer:
     def __init__(self, in_dim, out_dim, activation_function, device):
@@ -17,6 +19,8 @@ class bp_layer:
             self.activation_function = nn.Sigmoid()
         elif activation_function == "linear":
             self.activation_function = (lambda x: x)
+        elif activation_function == "tanh":
+            self.activation_function = nn.Tanh()
         else:
             sys.tracebacklimit = 0
             raise NotImplementedError(f"activation_function : {activation_function} ?")
