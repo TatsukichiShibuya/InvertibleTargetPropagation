@@ -27,4 +27,6 @@ elif [ "${1}" = "TTT" ];then
   wandb agent tatsukichishibuya/InvertibleTargetPropagation/km8zrb82
 elif [ "${1}" = "noref" ];then
   wandb agent tatsukichishibuya/InvertibleTargetPropagation/zojyslxl
+elif [ "${1}" = "lss" ];then
+  wandb agent tatsukichishibuya/InvertibleTargetPropagation/son9z7h9
 fi
