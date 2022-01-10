@@ -45,7 +45,7 @@ class dttp_net(net):
 
         return layers
 
-    def train(self, train_loader, valid_loader, epochs, stepsize, lr_ratio, lrb, scaling,
+    def train(self, train_loader, valid_loader, epochs, stepsize, lr_ratio, lrf, lrb, scaling,
               b_epochs, b_sigma, refinement_iter, log):
         # train backward network
         for e in range(10):
@@ -89,6 +89,11 @@ class dttp_net(net):
                 x, y = x.to(self.device), y.to(self.device)
                 for be in range(b_epochs):
                     self.train_backweights(x, lrb, b_sigma)
+            rec_loss = self.reconstruction_loss_of_dataset(train_loader)
+            if torch.isnan(rec_loss).any():
+                print("ERROR: rec loss diverged")
+                sys.exit(1)
+            print(f"before epochs {e}:\n\trec loss       : {rec_loss}")
 
             # train forward
             for x, y in train_loader:
@@ -101,7 +106,6 @@ class dttp_net(net):
                 ret = self.check_refinement()
                 for d in range(self.depth - self.direct_depth):
                     refinement_converge[d].append(ret[d])
-
                 D = self.depth - self.direct_depth
                 for d1 in range(D):
                     t = self.layers[d1].target
@@ -109,18 +113,18 @@ class dttp_net(net):
                         t = self.layers[d2].forward(t, update=False)
                     v1 = self.layers[D].linear_activation - t
                     v2 = self.layers[D].linear_activation - self.layers[D].target
-                    target_ratio = (torch.norm(v1, dim=1) + 1e-30) / (torch.norm(v2, dim=1) + 1e-30)
+                    nonzero = (torch.norm(v2, dim=1) > 1e-6)
+                    target_ratio = torch.norm(v1[nonzero], dim=1) / torch.norm(v2[nonzero], dim=1)
                     target_ratio_list[d1] = torch.cat([target_ratio_list[d1], target_ratio])
-                    target_angle = calc_angle(v1, v2)
+                    target_angle = calc_angle(v1[nonzero], v2[nonzero])
                     target_angle_list[d1] = torch.cat([target_angle_list[d1], target_angle])
-
                 monitor_end_time = time.time()
                 monitor_time = monitor_time + monitor_end_time - monitor_start_time
                 ###### monitor end ######
 
                 # train forward
                 move_ratio_DCTP, move_ratio_DTTP, move_angle_DCTP, move_angle_DTTP = self.update_weights(
-                    x, lr_ratio, scaling)
+                    x, lrf, lr_ratio, scaling)
 
                 ###### monitor start ######
                 monitor_start_time = time.time()
@@ -302,7 +306,7 @@ class dttp_net(net):
                     gft = self.layers[d + 1].backward(ft)
                     self.layers[d].target = self.layers[d].target + gt - gft
 
-    def update_weights(self, x, lr_ratio, scaling=False):
+    def update_weights(self, x, lrf, lr_ratio, scaling=False):
         move_target = [None for d in range(self.depth)]
         move_DCTP = [None for d in range(self.depth)]
         move_DTTP = [None for d in range(self.depth)]
@@ -314,7 +318,7 @@ class dttp_net(net):
             weights[d] = self.layers[d].weight
 
         if self.TRAIN_FORWARD_TYPE == "DCTP":
-            self.update_weights_DTTP(x, lr_ratio, scaling=False)
+            self.update_weights_DTTP(x, lrf, lr_ratio, scaling=False)
             for d in range(self.depth):
                 h_previous = self.layers[d - 1].linear_activation if d > 0 else x
                 h_after = self.layers[d].forward(h_previous, update=False)
@@ -323,13 +327,13 @@ class dttp_net(net):
             for d in range(self.depth):
                 self.layers[d].weight = weights[d].detach().requires_grad_()
 
-            self.update_weights_DCTP(x, lr_ratio, scaling=False)
+            self.update_weights_DCTP(x, lrf, lr_ratio, scaling=False)
             for d in range(self.depth):
                 h_previous = self.layers[d - 1].linear_activation if d > 0 else x
                 h_after = self.layers[d].forward(h_previous, update=False)
                 move_DCTP[d] = h_after - self.layers[d].linear_activation
         elif self.TRAIN_FORWARD_TYPE == "DTTP":
-            self.update_weights_DCTP(x, lr_ratio, scaling=False)
+            self.update_weights_DCTP(x, lrf, lr_ratio, scaling=False)
             for d in range(self.depth):
                 h_previous = self.layers[d - 1].linear_activation if d > 0 else x
                 h_after = self.layers[d].forward(h_previous, update=False)
@@ -338,7 +342,7 @@ class dttp_net(net):
             for d in range(self.depth):
                 self.layers[d].weight = weights[d].detach().requires_grad_()
 
-            self.update_weights_DTTP(x, lr_ratio, scaling=False)
+            self.update_weights_DTTP(x, lrf, lr_ratio, scaling=False)
             for d in range(self.depth):
                 h_previous = self.layers[d - 1].linear_activation if d > 0 else x
                 h_after = self.layers[d].forward(h_previous, update=False)
@@ -350,7 +354,7 @@ class dttp_net(net):
         move_angle_DTTP = [None for d in range(self.depth)]
         for d in range(self.depth):
             move_target_norm = torch.norm(move_target[d], dim=1)
-            nonzero = (move_target_norm > 1e-10)
+            nonzero = (move_target_norm > 1e-6)
             move_DCTP_norm = torch.norm(move_DCTP[d], dim=1)
             move_DTTP_norm = torch.norm(move_DTTP[d], dim=1)
             move_ratio_DCTP[d] = move_DCTP_norm[nonzero] / move_target_norm[nonzero]
@@ -360,7 +364,7 @@ class dttp_net(net):
 
         return move_ratio_DCTP, move_ratio_DTTP, move_angle_DCTP, move_angle_DTTP
 
-    def update_weights_DCTP(self, x, lr_ratio, scaling=False):
+    def update_weights_DCTP(self, x, lrf, lr_ratio, scaling=False):
         self.forward(x)
         batch_size = len(x)
         for d in reversed(range(self.depth)):
@@ -369,9 +373,9 @@ class dttp_net(net):
                 self.layers[d].weight.grad.zero_()
             loss.backward(retain_graph=True)
             self.layers[d].weight = (self.layers[d].weight -
-                                     (1 / batch_size) * self.layers[d].weight.grad).detach().requires_grad_()
+                                     (lrf / batch_size) * self.layers[d].weight.grad).detach().requires_grad_()
 
-    def update_weights_DTTP(self, x, lr_ratio, scaling=False):
+    def update_weights_DTTP(self, x, lrf, lr_ratio, scaling=False):
         self.forward(x)
         D = self.depth - self.direct_depth
         global_loss = ((self.layers[D].target - self.layers[D].linear_activation)**2).sum(axis=1)
@@ -387,7 +391,7 @@ class dttp_net(net):
             n = self.layers[d].activation / \
                 (self.layers[d].activation**2).sum(axis=1).reshape(-1, 1)
             grad = (self.layers[d].target -
-                    self.layers[d].linear_activation).T @ (n * (lr**lr_ratio))
+                    self.layers[d].linear_activation).T @ (n * (lr**lr_ratio) * lrf)
 
             # update weight
             if not (torch.isnan(grad).any() or torch.isinf(grad).any()

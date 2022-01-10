@@ -134,9 +134,7 @@ def main(**kwargs):
     elif kwargs["problem"] == "classification":
         trainset, validset, testset = make_classification_dataset(kwargs["datasize"])
         loss_function = nn.CrossEntropyLoss(reduction="sum")
-    else:
-        sys.tracebacklimit = 0
-        raise NotImplementedError(f"dataset : {kwargs['dataset']} ?")
+
     train_loader = torch.utils.data.DataLoader(trainset,
                                                batch_size=kwargs["batch_size"],
                                                shuffle=True,
@@ -185,16 +183,13 @@ def main(**kwargs):
                          activation_function=kwargs["activation_function"],
                          loss_function=loss_function,
                          type=kwargs["type"])
-    else:
-        sys.tracebacklimit = 0
-        raise NotImplementedError(f"algorithm : {kwargs['algorithm']} ?")
 
     # train
     if kwargs["algorithm"] == "BP":
         model.train(train_loader, valid_loader, kwargs["epochs"], kwargs["learning_rate"],
                     log=kwargs["log"])
     elif kwargs["algorithm"] == "DTTP":
-        model.train(train_loader, valid_loader, kwargs["epochs"], kwargs["stepsize"], kwargs["lr_ratio"],
+        model.train(train_loader, valid_loader, kwargs["epochs"], kwargs["stepsize"], kwargs["lr_ratio"], kwargs["learning_rate"],
                     kwargs["learning_rate_for_backward"], kwargs["weight_scaling"], kwargs["b_epochs"], kwargs["b_sigma"],
                     kwargs["refinement_iter"], kwargs["log"])
     elif kwargs["algorithm"] == "MyTP":
