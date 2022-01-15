@@ -25,7 +25,7 @@ def get_args():
     parser.add_argument("--datasize",   type=int, default=70000)
 
     # model architecture
-    parser.add_argument("--depth",      type=int, default=4)
+    parser.add_argument("--depth",      type=int, default=6)
     parser.add_argument("--in_dim",     type=int, default=784)
     parser.add_argument("--hid_dim",    type=int, default=256)
     parser.add_argument("--out_dim",    type=int, default=10)
