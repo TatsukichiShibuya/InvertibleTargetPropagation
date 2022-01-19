@@ -392,7 +392,7 @@ class dttp_net(net):
             n = self.layers[d].activation / \
                 (self.layers[d].activation**2).sum(axis=1).reshape(-1, 1)
             grad = (self.layers[d].target -
-                    self.layers[d].linear_activation).T @ (n * (lr / batch_size) * lrf)
+                    self.layers[d].linear_activation).T @ (n * lr * lrf)
 
             # update weight
             if not (torch.isnan(grad).any() or torch.isinf(grad).any()
