@@ -104,9 +104,11 @@ class dttp_net(net):
 
                 ###### monitor start ######
                 monitor_start_time = time.time()
+                """
                 ret = self.check_refinement()
                 for d in range(self.depth - self.direct_depth):
                     refinement_converge[d].append(ret[d])
+                """
                 D = self.depth - self.direct_depth
                 for d1 in range(D):
                     t = self.layers[d1].target
@@ -167,8 +169,10 @@ class dttp_net(net):
 
                     # monitor
                     for d in range(self.depth - self.direct_depth):
+                        """
                         x = torch.tensor(refinement_converge[d])
                         log_dict[f"convergence {d}"] = (torch.sum(x) / len(x)).item()
+                        """
                         log_dict[f"target ratio {d}"] = torch.mean(target_ratio_list[d]).item()
                         log_dict[f"target angle {d}"] = torch.mean(target_angle_list[d]).item()
                     for d in range(self.depth):
@@ -194,8 +198,10 @@ class dttp_net(net):
 
                     # monitor
                     for d in range(self.depth - self.direct_depth):
+                        """
                         x = torch.tensor(refinement_converge[d])
                         print(f"\tconvergence {d}: {(torch.sum(x) / len(x)).item()}")
+                        """
                         print(f"\ttarget ratio {d}: {torch.mean(target_ratio_list[d]).item()}")
                         print(f"\ttarget angle {d}: {torch.mean(target_angle_list[d]).item()}")
 
