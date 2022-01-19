@@ -246,7 +246,7 @@ class dttp_net(net):
                 self.layers[d].backweight.grad.zero_()
             loss.backward(retain_graph=True)
             self.layers[d].backweight = (self.layers[d].backweight -
-                                         lrb * self.layers[d].backweight.grad).detach().requires_grad_()
+                                         (lrb / batch_size) * self.layers[d].backweight.grad).detach().requires_grad_()
 
     def train_backweights_DTTP(self, x, lrb, b_sigma):
         self.forward(x)
