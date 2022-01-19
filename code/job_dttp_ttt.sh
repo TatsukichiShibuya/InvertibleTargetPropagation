@@ -1,7 +1,7 @@
 #!/bin/bash
 #$ -cwd
 #$ -l f_node=1
-#$ -l h_rt=3:00:00
+#$ -l h_rt=12:00:00
 #$ -j y
 #$ -o output/o.$JOB_ID
 export PYENV_ROOT="$HOME/.pyenv"
@@ -9,8 +9,4 @@ export PATH="$PYENV_ROOT/bin:$PATH"
 eval "$(pyenv init --path)"
 eval "$(pyenv init -)"
 eval "$(pyenv virtualenv-init -)"
-if [ "${1}" = "CCC" ];then
-  wandb agent tatsukichishibuya/InvertibleTargetPropagation/umulf3vp
-elif [ "${1}" = "TTC" ];then
-  wandb agent tatsukichishibuya/InvertibleTargetPropagation/m614upgx
-fi
+wandb agent tatsukichishibuya/InvertibleTargetPropagation/0lbba8j6
