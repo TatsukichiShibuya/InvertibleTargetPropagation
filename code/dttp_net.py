@@ -41,7 +41,8 @@ class dttp_net(net):
         for i in range(1, self.depth - 1):
             layers[i] = dttp_layer(hid_dim, hid_dim, activation_function, self.device)
         # last layer
-        layers[-1] = dttp_layer(hid_dim, out_dim, "linear", self.device)
+        #layers[-1] = dttp_layer(hid_dim, out_dim, "linear", self.device)
+        layers[-1] = dttp_layer(hid_dim, out_dim, activation_function, self.device)
 
         return layers
 
@@ -391,7 +392,7 @@ class dttp_net(net):
             n = self.layers[d].activation / \
                 (self.layers[d].activation**2).sum(axis=1).reshape(-1, 1)
             grad = (self.layers[d].target -
-                    self.layers[d].linear_activation).T @ (n * (lr**lr_ratio) * lrf)
+                    self.layers[d].linear_activation).T @ (n * (lr / batch_size) * lrf)
 
             # update weight
             if not (torch.isnan(grad).any() or torch.isinf(grad).any()

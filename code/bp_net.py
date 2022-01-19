@@ -21,7 +21,8 @@ class bp_net(net):
         for i in range(1, self.depth - 1):
             layers[i] = bp_layer(hid_dim, hid_dim, activation_function, self.device)
         # last layer
-        layers[-1] = bp_layer(hid_dim, out_dim, "linear", self.device)
+        #layers[-1] = bp_layer(hid_dim, out_dim, "linear", self.device)
+        layers[-1] = bp_layer(hid_dim, out_dim, activation_function, self.device)
 
         return layers
 
