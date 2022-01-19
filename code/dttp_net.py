@@ -246,18 +246,20 @@ class dttp_net(net):
                 self.layers[d].backweight.grad.zero_()
             loss.backward(retain_graph=True)
             self.layers[d].backweight = (self.layers[d].backweight -
-                                         (lrb / batch_size) * self.layers[d].backweight.grad).detach().requires_grad_()
+                                         lrb * self.layers[d].backweight.grad).detach().requires_grad_()
 
     def train_backweights_DTTP(self, x, lrb, b_sigma):
         self.forward(x)
         for d in reversed(range(1, self.depth - self.direct_depth + 1)):
-            s = self.layers[d].activation_function(self.layers[d].linear_activation)
+            q = self.layers[d - 1].linear_activation.detach().clone()
+            q = q + torch.normal(0, b_sigma, size=q.shape, device=self.device)
+            q_next = self.layers[d].forward(q, update=False)
+            s = self.layers[d].activation_function(q_next)
             n = s / (s**2).sum(axis=1).reshape(-1, 1)
-            grad = (self.layers[d - 1].linear_activation -
-                    self.layers[d].backward(self.layers[d].linear_activation)).T @ (n * lrb)
+            grad = (q - self.layers[d].backward(q_next)).T @ (n * lrb)
             if not (torch.isnan(grad).any() or torch.isinf(grad).any()):
-                self.layers[d].backweight = (self.layers[d].backweight +
-                                             grad).detach().requires_grad_()
+                self.layers[d].backweight = (
+                    self.layers[d].backweight + grad).detach().requires_grad_()
 
     def compute_target(self, x, y, stepsize, refinement_iter):
         if self.TARGET_TYPE == "DCTP":
