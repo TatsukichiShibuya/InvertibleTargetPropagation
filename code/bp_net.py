@@ -91,7 +91,7 @@ class bp_net(net):
         batch_size = len(y)
         self.zero_grad()
         loss.backward()
-        for d in range(5, self.depth):
+        for d in range(self.depth):
             self.layers[d].weight = (self.layers[d].weight - (lr / batch_size)
                                      * self.layers[d].weight.grad).detach().requires_grad_()
 
