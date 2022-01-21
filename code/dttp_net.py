@@ -85,7 +85,6 @@ class dttp_net(net):
             monitor_time = 0
             start_time = time.time()
 
-            """
             # train backward
             for x, y in train_loader:
                 x, y = x.to(self.device), y.to(self.device)
@@ -96,15 +95,15 @@ class dttp_net(net):
                 print("ERROR: rec loss diverged")
                 sys.exit(1)
             print(f"before epochs {e}:\n\trec loss       : {rec_loss}")
-            """
 
             # train forward
             for x, y in train_loader:
                 x, y = x.to(self.device), y.to(self.device)
+                """
                 # train backward
                 for be in range(b_epochs):
                     self.train_backweights(x, lrb, b_sigma)
-
+                """
                 # compute target
                 self.compute_target(x, y, stepsize, refinement_iter)
 
@@ -124,6 +123,8 @@ class dttp_net(net):
                     v2 = self.layers[D].linear_activation - self.layers[D].target
                     nonzero = (torch.norm(v2, dim=1) > 1e-6)
                     target_ratio = torch.norm(v1[nonzero], dim=1) / torch.norm(v2[nonzero], dim=1)
+                    print(d1, torch.norm(v1, dim=1).min(), torch.norm(v1, dim=1).max())
+                    print(d1, torch.norm(v2, dim=1).min(), torch.norm(v2, dim=1).max())
                     target_ratio_list[d1] = torch.cat([target_ratio_list[d1], target_ratio])
                     target_angle = calc_angle(v1[nonzero], v2[nonzero])
                     target_angle_list[d1] = torch.cat([target_angle_list[d1], target_angle])
