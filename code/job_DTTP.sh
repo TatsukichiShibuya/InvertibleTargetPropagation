@@ -13,4 +13,6 @@ if [ "${1}" = "CCC" ];then
   wandb agent tatsukichishibuya/InvertibleTargetPropagation/umulf3vp
 elif [ "${1}" = "TTC" ];then
   wandb agent tatsukichishibuya/InvertibleTargetPropagation/m614upgx
+elif [ "${1}" = "CCT" ];then
+  wandb agent tatsukichishibuya/InvertibleTargetPropagation/fn87clnx
 fi
