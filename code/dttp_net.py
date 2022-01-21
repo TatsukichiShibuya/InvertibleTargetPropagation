@@ -121,7 +121,8 @@ class dttp_net(net):
                         t = self.layers[d2].forward(t, update=False)
                     v1 = self.layers[D].linear_activation - t
                     v2 = self.layers[D].linear_activation - self.layers[D].target
-                    nonzero = (torch.norm(v2, dim=1) > 1e-6)
+                    v3 = t - self.layers[D].target
+                    nonzero = torch.norm(v3, dim=1) < 1e-2
                     target_ratio = torch.norm(v1[nonzero], dim=1) / torch.norm(v2[nonzero], dim=1)
                     print(d1, torch.norm(v1, dim=1).min(), torch.norm(v1, dim=1).max())
                     print(d1, torch.norm(v2, dim=1).min(), torch.norm(v2, dim=1).max())
