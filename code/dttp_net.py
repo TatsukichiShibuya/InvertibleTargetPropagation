@@ -124,7 +124,7 @@ class dttp_net(net):
                     v3 = t - self.layers[D].target
                     nonzero = torch.norm(v3, dim=1) < 1e-2
                     zero = torch.logical_not(nonzero)
-                    print(d1, len(nonzero).sum().item(), len(zero).sum().item())
+                    print(d1, nonzero.sum().item(), zero.sum().item())
                     target_ratio = torch.norm(v1[nonzero], dim=1) / torch.norm(v2[nonzero], dim=1)
                     target_ratio_list[d1] = torch.cat([target_ratio_list[d1], target_ratio])
                     target_angle = calc_angle(v1[nonzero], v2[nonzero])
