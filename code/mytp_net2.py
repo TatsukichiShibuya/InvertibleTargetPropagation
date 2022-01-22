@@ -27,7 +27,8 @@ class mytp_net(net):
         for i in range(1, self.depth - 1):
             layers[i] = mytp_layer(hid_dim, hid_dim, activation_function, self.device)
         # last layer
-        layers[-1] = mytp_layer(hid_dim, out_dim, "linear", self.device)
+        #layers[-1] = mytp_layer(hid_dim, out_dim, "linear", self.device)
+        layers[-1] = dttp_layer(hid_dim, out_dim, activation_function, self.device)
 
         return layers
 
@@ -42,24 +43,37 @@ class mytp_net(net):
         # train forward network
         for e in range(epochs):
             # monitor
-            last_weights = [None] * self.depth
-            for d in range(self.depth):
-                last_weights[d] = self.layers[d].weight
-            target_dist = [[] for d in range(self.depth - self.direct_depth)]
-            target_dist_plot = [None for i in range(self.depth - self.direct_depth)]
-            target_dist_u_plot = [None for i in range(self.depth - self.direct_depth)]
-            target_dist_b_plot = [None for i in range(self.depth - self.direct_depth)]
-            local_loss_plot = [None for i in range(self.depth)]
-            target_angle = [[] for d in range(self.depth - self.direct_depth)]
+            refinement_converge = [[] for d in range(self.depth - self.direct_depth)]
+            target_ratio_list = [torch.tensor([], device=self.device)
+                                 for d in range(self.depth - self.direct_depth)]
+            target_angle_list = [torch.tensor([], device=self.device)
+                                 for d in range(self.depth - self.direct_depth)]
+
+            move_ratio_DCTP_list = [torch.tensor([], device=self.device)
+                                    for d in range(self.depth)]
+            move_angle_DCTP_list = [torch.tensor([], device=self.device)
+                                    for d in range(self.depth)]
+            move_ratio_DTTP_list = [torch.tensor([], device=self.device)
+                                    for d in range(self.depth)]
+            move_angle_DTTP_list = [torch.tensor([], device=self.device)
+                                    for d in range(self.depth)]
             monitor_time = 0
             start_time = time.time()
+
+            # train backward
+            for x, y in train_loader:
+                x, y = x.to(self.device), y.to(self.device)
+                for be in range(b_epochs):
+                    self.train_backweights(x, lrb, b_sigma)
+            rec_loss = self.reconstruction_loss_of_dataset(train_loader)
+            if torch.isnan(rec_loss).any():
+                print("ERROR: rec loss diverged")
+                sys.exit(1)
+            print(f"before epochs {e}:\n\trec loss       : {rec_loss}")
 
             # train forward
             for x, y in train_loader:
                 x, y = x.to(self.device), y.to(self.device)
-                # train backward
-                for be in range(b_epochs):
-                    self.train_backweights(x, lrb, b_sigma, b_loss)
 
                 # compute target
                 self.compute_target(x, y, stepsize, refinement_iter, refinement_type)
