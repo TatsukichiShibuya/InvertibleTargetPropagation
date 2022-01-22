@@ -103,17 +103,11 @@ class dttp_net(net):
                 for be in range(b_epochs):
                     self.train_backweights(x, lrb, b_sigma)
                 """
-
                 # compute target
                 self.compute_target(x, y, stepsize, refinement_iter)
 
                 ###### monitor start ######
                 monitor_start_time = time.time()
-                """
-                ret = self.check_refinement()
-                for d in range(self.depth - self.direct_depth):
-                    refinement_converge[d].append(ret[d])
-                """
                 D = self.depth - self.direct_depth
                 for d1 in range(D):
                     t = self.layers[d1].target
@@ -219,25 +213,6 @@ class dttp_net(net):
                             f"\tmove ratio DTTP {d}: {torch.mean(move_ratio_DTTP_list[d]).item()}")
                         print(
                             f"\tmove angle DTTP {d}: {torch.mean(move_angle_DTTP_list[d]).item()}")
-
-    def check_refinement(self):
-        ret = []
-        for d in range(self.depth - self.direct_depth):
-            y = self.layers[d + 1].linear_activation
-            gy = self.layers[d + 1].backward(y)
-            loss_before = torch.norm(gy - self.layers[d].linear_activation, dim=1)
-
-            x = self.layers[d + 1].backward(y)
-            for i in range(10):
-                fx = self.layers[d + 1].forward(x, update=False)
-                gfx = self.layers[d + 1].backward(fx)
-                x = x + gy - gfx
-            loss_after = torch.norm(x - self.layers[d].linear_activation, dim=1)
-
-            flag1 = (loss_after < loss_before)
-            flag2 = (loss_after < 1e-3)
-            ret.append(torch.logical_or(flag1, flag2).all().item())
-        return ret
 
     def train_backweights(self, x, lrb, b_sigma):
         if self.TRAIN_BACKWARD_TYPE == "DCTP":

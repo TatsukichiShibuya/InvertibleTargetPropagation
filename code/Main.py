@@ -3,7 +3,7 @@ from dataset import make_regression_dataset, make_classification_dataset
 
 from bp_net import bp_net
 from dttp_net import dttp_net
-from mytp_net import mytp_net
+from mytp_net2 import mytp_net
 
 import os
 import sys
@@ -193,9 +193,9 @@ def main(**kwargs):
                     kwargs["learning_rate_for_backward"], kwargs["weight_scaling"], kwargs["b_epochs"], kwargs["b_sigma"],
                     kwargs["refinement_iter"], kwargs["log"])
     elif kwargs["algorithm"] == "MyTP":
-        model.train(train_loader, valid_loader, kwargs["epochs"], kwargs["stepsize"], kwargs["lr_ratio"],
+        model.train(train_loader, valid_loader, kwargs["epochs"], kwargs["stepsize"], kwargs["lr_ratio"], kwargs["learning_rate"],
                     kwargs["learning_rate_for_backward"], kwargs["weight_scaling"], kwargs["b_epochs"], kwargs["b_sigma"],
-                    kwargs["refinement_iter"], kwargs["refinement_type"], kwargs["b_loss"], kwargs["log"])
+                    kwargs["refinement_iter"], kwargs["log"])
 
     # test
     print(f"\ttest  : {model.test(test_loader)}")
