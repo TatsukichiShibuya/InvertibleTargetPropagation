@@ -1,5 +1,5 @@
 from utils import plot_regression, worker_init_fn, fix_seed
-from dataset import make_regression_dataset, make_classification_dataset
+from dataset import make_regression_dataset, make_classification_dataset, make_CIFAR10
 
 from bp_net import bp_net
 from dttp_net import dttp_net
@@ -21,7 +21,7 @@ def get_args():
 
     # dataset
     parser.add_argument("--problem",    type=str, default="classification",
-                        choices=['regression', 'classification'])
+                        choices=['regression', 'classification', 'CIFAR10'])
     parser.add_argument("--datasize",   type=int, default=70000)
 
     # model architecture
@@ -133,6 +133,9 @@ def main(**kwargs):
         loss_function = nn.MSELoss(reduction="sum")
     elif kwargs["problem"] == "classification":
         trainset, validset, testset = make_classification_dataset(kwargs["datasize"])
+        loss_function = nn.CrossEntropyLoss(reduction="sum")
+    elif kwargs["problem"] == "CIFAR10":
+        trainset, validset, testset = make_CIFAR10(kwargs["datasize"])
         loss_function = nn.CrossEntropyLoss(reduction="sum")
 
     train_loader = torch.utils.data.DataLoader(trainset,

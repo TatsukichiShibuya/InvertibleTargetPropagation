@@ -64,6 +64,25 @@ def make_classification_dataset(size):
     return trainset, testset, testset
 
 
+def make_CIFAR10(size):
+    transform = transforms.Compose([transforms.ToTensor(),
+                                    transforms.Normalize((0.1307,), (0.3081,))])
+
+    cifar_train = tv.datasets.CIFAR10(root='./data', train=True, download=True, transform=transform)
+    train_x, train_y = torch.empty([50000, 3072]), torch.empty([50000], dtype=torch.long)
+    for i, t in enumerate(list(cifar_train)):
+        train_x[i], train_y[i] = t[0].reshape((-1)), t[1]
+    trainset = MyClassification(train_x, train_y)
+
+    cifar_test = tv.datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
+    test_x, test_y = torch.empty([10000, 3072]), torch.empty([10000], dtype=torch.long)
+    for i, t in enumerate(list(cifar_test)):
+        test_x[i], test_y[i] = t[0].reshape((-1)), t[1]
+    testset = MyClassification(test_x, test_y)
+
+    return trainset, testset, testset
+
+
 def make_classification_dataset2(size):
     # (trainsize : validsize : testsize) = (5 : 1 : 1)
     trainsize = max(size * 5 // 7, 1)
