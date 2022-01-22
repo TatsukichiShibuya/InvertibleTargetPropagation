@@ -9,14 +9,8 @@ export PATH="$PYENV_ROOT/bin:$PATH"
 eval "$(pyenv init --path)"
 eval "$(pyenv init -)"
 eval "$(pyenv virtualenv-init -)"
-if [ "${1}" = "CCC" ];then
-  wandb agent tatsukichishibuya/InvertibleTargetPropagation/umulf3vp
-elif [ "${1}" = "TTC" ];then
-  wandb agent tatsukichishibuya/InvertibleTargetPropagation/m614upgx
-elif [ "${1}" = "CCT" ];then
-  wandb agent tatsukichishibuya/InvertibleTargetPropagation/xhvs6h87
-elif [ "${1}" = "TTT1" ];then
-  wandb agent tatsukichishibuya/InvertibleTargetPropagation/e6gxk87s
-elif [ "${1}" = "TTT2" ];then
-  wandb agent tatsukichishibuya/InvertibleTargetPropagation/ypafcd7o
+if [ "${1}" = "CCC1" ];then
+  wandb agent tatsukichishibuya/InvertibleTargetPropagation/bz1oikpi
+elif [ "${1}" = "CCC2" ];then
+  wandb agent tatsukichishibuya/InvertibleTargetPropagation/fjw4745o
 fi
