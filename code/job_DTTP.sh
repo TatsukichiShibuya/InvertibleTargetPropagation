@@ -11,4 +11,6 @@ eval "$(pyenv init -)"
 eval "$(pyenv virtualenv-init -)"
 if [ "${1}" = "CCC" ];then
   wandb agent tatsukichishibuya/InvertibleTargetPropagation/fjw4745o
+elif [ "${1}" = "TTT" ];then
+  wandb agent tatsukichishibuya/InvertibleTargetPropagation/mjmc2c4l
 fi
