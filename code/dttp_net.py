@@ -63,18 +63,12 @@ class dttp_net(net):
                 sys.exit(1)
             print(f"epochs {e}: {rec_loss}")
 
-        refinement_converge = None
-        target_ratio_list = None
-        target_angle_list = None
         # train forward network
         for e in range(epochs):
             torch.cuda.empty_cache()
             # monitor
-            refinement_converge = [[] for d in range(self.depth - self.direct_depth)]
-            target_ratio_list = [torch.tensor([], device=self.device)
-                                 for d in range(self.depth - self.direct_depth)]
-            target_angle_list = [torch.tensor([], device=self.device)
-                                 for d in range(self.depth - self.direct_depth)]
+            target_ratio_sum = [0] * (self.depth - self.direct_depth)
+            target_angle_sum = [0] * (self.depth - self.direct_depth)
             """
             move_ratio_DCTP_list = [torch.tensor([], device=self.device)
                                     for d in range(self.depth)]
@@ -101,7 +95,6 @@ class dttp_net(net):
 
             # train forward
             for x, y in train_loader:
-                torch.cuda.empty_cache()
                 x, y = x.to(self.device), y.to(self.device)
                 """
                 # train backward
@@ -122,9 +115,11 @@ class dttp_net(net):
                     v2 = self.layers[D].linear_activation - self.layers[D].target
                     nonzero = torch.norm(v2, dim=1) > 1e-6
                     target_ratio = torch.norm(v1[nonzero], dim=1) / torch.norm(v2[nonzero], dim=1)
-                    target_ratio_list[d1] = torch.cat([target_ratio_list[d1], target_ratio])
+                    target_ratio_sum[d1] = target_ratio_sum[d1] + target_ratio.sum()
+                    # target_ratio_list[d1] = torch.cat([target_ratio_list[d1], target_ratio])
                     target_angle = calc_angle(v1[nonzero], v2[nonzero])
-                    target_angle_list[d1] = torch.cat([target_angle_list[d1], target_angle])
+                    target_angle_sum[d1] = target_angle_sum[d1] + target_angle.sum()
+                    # target_angle_list[d1] = torch.cat([target_angle_list[d1], target_angle])
                 monitor_end_time = time.time()
                 monitor_time = monitor_time + monitor_end_time - monitor_start_time
                 ###### monitor end ######
@@ -174,8 +169,12 @@ class dttp_net(net):
 
                     # monitor
                     for d in range(self.depth - self.direct_depth):
-                        log_dict[f"target ratio {d}"] = torch.mean(target_ratio_list[d]).item()
-                        log_dict[f"target angle {d}"] = torch.mean(target_angle_list[d]).item()
+                        # log_dict[f"target ratio {d}"] = torch.mean(target_ratio_list[d]).item()
+                        # log_dict[f"target angle {d}"] = torch.mean(target_angle_list[d]).item()
+                        log_dict[f"target ratio {d}"] = target_ratio_sum[d].item(
+                        ) / len(train_loader.dataset)
+                        log_dict[f"target angle {d}"] = target_angle_sum[d].item(
+                        ) / len(train_loader.dataset)
                     """
                     for d in range(self.depth):
                         log_dict[f"move ratio DCTP {d}"] = torch.mean(
