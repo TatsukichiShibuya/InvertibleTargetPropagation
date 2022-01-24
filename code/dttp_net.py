@@ -98,6 +98,7 @@ class dttp_net(net):
 
             # train forward
             for x, y in train_loader:
+                torch.cuda.empty_cache()
                 x, y = x.to(self.device), y.to(self.device)
                 """
                 # train backward
