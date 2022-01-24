@@ -63,6 +63,9 @@ class dttp_net(net):
                 sys.exit(1)
             print(f"epochs {e}: {rec_loss}")
 
+        refinement_converge = None
+        target_ratio_list = None
+        target_angle_list = None
         # train forward network
         for e in range(epochs):
             torch.cuda.empty_cache()
@@ -171,10 +174,6 @@ class dttp_net(net):
 
                     # monitor
                     for d in range(self.depth - self.direct_depth):
-                        """
-                        x = torch.tensor(refinement_converge[d])
-                        log_dict[f"convergence {d}"] = (torch.sum(x) / len(x)).item()
-                        """
                         log_dict[f"target ratio {d}"] = torch.mean(target_ratio_list[d]).item()
                         log_dict[f"target angle {d}"] = torch.mean(target_angle_list[d]).item()
                     """
