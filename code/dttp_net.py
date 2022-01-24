@@ -66,7 +66,6 @@ class dttp_net(net):
         # train forward network
         for e in range(epochs):
             torch.cuda.empty_cache()
-            """"
             # monitor
             refinement_converge = [[] for d in range(self.depth - self.direct_depth)]
             target_ratio_list = [torch.tensor([], device=self.device)
@@ -82,10 +81,9 @@ class dttp_net(net):
                                     for d in range(self.depth)]
             move_angle_DTTP_list = [torch.tensor([], device=self.device)
                                     for d in range(self.depth)]
-            """
             monitor_time = 0
             start_time = time.time()
-            """
+
             # train backward
             for x, y in train_loader:
                 x, y = x.to(self.device), y.to(self.device)
@@ -96,18 +94,18 @@ class dttp_net(net):
                 print("ERROR: rec loss diverged")
                 sys.exit(1)
             print(f"before epochs {e}:\n\trec loss       : {rec_loss}")
-            """
 
             # train forward
             for x, y in train_loader:
                 x, y = x.to(self.device), y.to(self.device)
+                """
                 # train backward
                 for be in range(b_epochs):
                     self.train_backweights(x, lrb, b_sigma)
+                """
                 # compute target
                 self.compute_target(x, y, stepsize, refinement_iter)
 
-                """
                 ###### monitor start ######
                 monitor_start_time = time.time()
                 D = self.depth - self.direct_depth
@@ -125,12 +123,10 @@ class dttp_net(net):
                 monitor_end_time = time.time()
                 monitor_time = monitor_time + monitor_end_time - monitor_start_time
                 ###### monitor end ######
-                """
 
                 # train forward
                 #move_ratio_DCTP, move_ratio_DTTP, move_angle_DCTP, move_angle_DTTP = self.update_weights(x, lrf, lr_ratio, scaling)
                 self.update_weights(x, lrf, lr_ratio, scaling)
-                """
                 ###### monitor start ######
                 monitor_start_time = time.time()
                 for d in range(self.depth):
@@ -145,7 +141,6 @@ class dttp_net(net):
                 monitor_end_time = time.time()
                 monitor_time = monitor_time + monitor_end_time - monitor_start_time
                 ###### monitor end ######
-                """
 
             end_time = time.time()
             print(f"epochs {e}: {end_time - start_time - monitor_time:.2f}, {monitor_time:.2f}")
@@ -170,7 +165,6 @@ class dttp_net(net):
                         log_dict["valid accuracy"] = valid_acc
                     log_dict["time"] = end_time - start_time - monitor_time
 
-                    '''
                     # monitor
                     for d in range(self.depth - self.direct_depth):
                         """
@@ -188,7 +182,6 @@ class dttp_net(net):
                             move_ratio_DTTP_list[d]).item()
                         log_dict[f"move angle DTTP {d}"] = torch.mean(
                             move_angle_DTTP_list[d]).item()
-                    '''
 
                     wandb.log(log_dict)
                 else:
