@@ -72,7 +72,7 @@ class dttp_net(net):
                                  for d in range(self.depth - self.direct_depth)]
             target_angle_list = [torch.tensor([], device=self.device)
                                  for d in range(self.depth - self.direct_depth)]
-
+            """
             move_ratio_DCTP_list = [torch.tensor([], device=self.device)
                                     for d in range(self.depth)]
             move_angle_DCTP_list = [torch.tensor([], device=self.device)
@@ -81,6 +81,7 @@ class dttp_net(net):
                                     for d in range(self.depth)]
             move_angle_DTTP_list = [torch.tensor([], device=self.device)
                                     for d in range(self.depth)]
+            """
             monitor_time = 0
             start_time = time.time()
 
@@ -127,6 +128,7 @@ class dttp_net(net):
                 # train forward
                 #move_ratio_DCTP, move_ratio_DTTP, move_angle_DCTP, move_angle_DTTP = self.update_weights(x, lrf, lr_ratio, scaling)
                 self.update_weights(x, lrf, lr_ratio, scaling)
+                """
                 ###### monitor start ######
                 monitor_start_time = time.time()
                 for d in range(self.depth):
@@ -140,6 +142,7 @@ class dttp_net(net):
                                                          move_angle_DTTP[d]])
                 monitor_end_time = time.time()
                 monitor_time = monitor_time + monitor_end_time - monitor_start_time
+                """
                 ###### monitor end ######
 
             end_time = time.time()
@@ -173,6 +176,7 @@ class dttp_net(net):
                         """
                         log_dict[f"target ratio {d}"] = torch.mean(target_ratio_list[d]).item()
                         log_dict[f"target angle {d}"] = torch.mean(target_angle_list[d]).item()
+                    """
                     for d in range(self.depth):
                         log_dict[f"move ratio DCTP {d}"] = torch.mean(
                             move_ratio_DCTP_list[d]).item()
@@ -182,6 +186,7 @@ class dttp_net(net):
                             move_ratio_DTTP_list[d]).item()
                         log_dict[f"move angle DTTP {d}"] = torch.mean(
                             move_angle_DTTP_list[d]).item()
+                    """
 
                     wandb.log(log_dict)
                 else:
