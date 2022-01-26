@@ -71,7 +71,6 @@ class dttp_net(net):
             target_angle_sum = [0] * (self.depth - self.direct_depth)
             monitor_time = 0
             start_time = time.time()
-            """
             # train backward
             for x, y in train_loader:
                 x, y = x.to(self.device), y.to(self.device)
@@ -82,13 +81,15 @@ class dttp_net(net):
                 print("ERROR: rec loss diverged")
                 sys.exit(1)
             print(f"before epochs {e}:\n\trec loss       : {rec_loss}")
-            """
+
             # train forward
             for x, y in train_loader:
                 x, y = x.to(self.device), y.to(self.device)
+                """
                 # train backward
                 for be in range(b_epochs):
                     self.train_backweights(x, lrb, b_sigma)
+                """
                 # compute target
                 self.compute_target(x, y, stepsize, refinement_iter)
 
@@ -158,8 +159,10 @@ class dttp_net(net):
 
                     # monitor
                     for d in range(self.depth - self.direct_depth):
-                        print(f"\ttarget ratio {d}: {torch.mean(target_ratio_list[d]).item()}")
-                        print(f"\ttarget angle {d}: {torch.mean(target_angle_list[d]).item()}")
+                        print(
+                            f"\ttarget ratio {d}: {target_ratio_sum[d].item() / len(train_loader.dataset)}")
+                        print(
+                            f"\ttarget angle {d}: {target_angle_sum[d].item() / len(train_loader.dataset)}")
 
     def train_backweights(self, x, lrb, b_sigma):
         if self.TRAIN_BACKWARD_TYPE == "DCTP":
