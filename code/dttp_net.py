@@ -92,7 +92,6 @@ class dttp_net(net):
                 # compute target
                 self.compute_target(x, y, stepsize, refinement_iter)
 
-                """
                 ###### monitor start ######
                 monitor_start_time = time.time()
                 D = self.depth - self.direct_depth
@@ -110,7 +109,6 @@ class dttp_net(net):
                 monitor_end_time = time.time()
                 monitor_time = monitor_time + monitor_end_time - monitor_start_time
                 ###### monitor end ######
-                """
 
                 # train forward
                 self.update_weights(x, lrf, lr_ratio, scaling)
@@ -138,14 +136,12 @@ class dttp_net(net):
                         log_dict["valid accuracy"] = valid_acc
                     log_dict["time"] = end_time - start_time - monitor_time
 
-                    """
                     # monitor
                     for d in range(self.depth - self.direct_depth):
                         log_dict[f"target ratio {d}"] = target_ratio_sum[d].item(
                         ) / len(train_loader.dataset)
                         log_dict[f"target angle {d}"] = target_angle_sum[d].item(
                         ) / len(train_loader.dataset)
-                    """
 
                     wandb.log(log_dict)
                 else:
