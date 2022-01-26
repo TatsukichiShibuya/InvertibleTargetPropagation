@@ -94,20 +94,22 @@ class dttp_net(net):
 
                 ###### monitor start ######
                 monitor_start_time = time.time()
-                D = self.depth - self.direct_depth
-                for d1 in range(D):
-                    t = self.layers[d1].target
-                    for d2 in range(d1 + 1, D + 1):
-                        t = self.layers[d2].forward(t, update=False)
-                    v1 = self.layers[D].linear_activation - t
-                    v2 = self.layers[D].linear_activation - self.layers[D].target
-                    nonzero = torch.norm(v2, dim=1) > 1e-6
-                    target_ratio = torch.norm(v1[nonzero], dim=1) / torch.norm(v2[nonzero], dim=1)
-                    target_ratio_sum[d1] = target_ratio_sum[d1] + target_ratio.sum()
-                    target_angle = calc_angle(v1[nonzero], v2[nonzero])
-                    target_angle_sum[d1] = target_angle_sum[d1] + target_angle.sum()
-                monitor_end_time = time.time()
-                monitor_time = monitor_time + monitor_end_time - monitor_start_time
+                with torch.no_grad():
+                    D = self.depth - self.direct_depth
+                    for d1 in range(D):
+                        t = self.layers[d1].target
+                        for d2 in range(d1 + 1, D + 1):
+                            t = self.layers[d2].forward(t, update=False)
+                        v1 = self.layers[D].linear_activation - t
+                        v2 = self.layers[D].linear_activation - self.layers[D].target
+                        nonzero = torch.norm(v2, dim=1) > 1e-6
+                        target_ratio = torch.norm(v1[nonzero], dim=1) / \
+                            torch.norm(v2[nonzero], dim=1)
+                        target_ratio_sum[d1] = target_ratio_sum[d1] + target_ratio.sum()
+                        target_angle = calc_angle(v1[nonzero], v2[nonzero])
+                        target_angle_sum[d1] = target_angle_sum[d1] + target_angle.sum()
+                    monitor_end_time = time.time()
+                    monitor_time = monitor_time + monitor_end_time - monitor_start_time
                 ###### monitor end ######
 
                 # train forward
