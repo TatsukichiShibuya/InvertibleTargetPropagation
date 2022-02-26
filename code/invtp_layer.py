@@ -20,7 +20,7 @@ class invtp_layer:
             self.activation_function = (lambda x: x)
             self.back_activation_function = (lambda x: x)
         elif activation_function == "tanh":
-            self.activation_function = nn.Tanh(0.2)
+            self.activation_function = nn.Tanh()
             self.back_activation_function = (lambda x: x)
         else:
             sys.tracebacklimit = 0
