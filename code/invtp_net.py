@@ -137,12 +137,15 @@ class invtp_net(net):
                         print(f"\ttarget angle {d}: {target_angle_sum[d].item() / datasize}")
 
     def train_back_weights(self):
-        return
+        """
         for d in range(self.depth):
             inv = torch.pinverse(self.layers[d].weight)
             inv = inv + torch.normal(0, 0.001, size=inv.shape, device=self.device)
-            self.layers[d].back_weight = inv.detach().clone().requires_grad_()
-            self.layers[d].back_weight.retain_grad()
+            self.layers[d].back_weight = inv.detach().clone()
+        """
+        for d in range(self.depth):
+            w = torch.sign(self.layers[d].weight.T)
+            self.layers[d].back_weight = w.detach().clone()
 
     def compute_target(self, x, y, stepsize, refinement_iter):
         if self.TARGET_TYPE == "DCTP":
