@@ -51,9 +51,13 @@ class invtp_layer:
             return h
 
     def backward(self, h):
+        """
         mean, std = torch.mean(self.swx, dim=0), torch.std(self.swx, dim=0)
         s = batch_normalization_inverse(h, mean, std)
         a = self.back_activation_function(s)
         x = a @ self.back_weight.T
         x = batch_normalization(x)
+        """
+        a = self.back_activation_function(h)
+        x = a @ self.back_weight.T
         return x
