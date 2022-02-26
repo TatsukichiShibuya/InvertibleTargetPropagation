@@ -14,7 +14,7 @@ class invtp_layer:
         self.back_weight.retain_grad()
         """
         mean, std = torch.mean(self.weight), torch.std(self.weight)
-        self.back_weight = torch.normal(mean, std, size=self.weight.shape, device=device).T
+        self.back_weight = torch.normal(mean=mean, std=std, size=self.weight.shape, device=device).T
 
         # functions
         if activation_function == "leakyrelu":
