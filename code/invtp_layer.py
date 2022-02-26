@@ -58,6 +58,7 @@ class invtp_layer:
         x = a @ self.back_weight.T
         x = batch_normalization(x)
         """
-        a = self.back_activation_function(h)
-        x = a @ self.back_weight.T
+        a = h @ self.back_weight.T
+        x = self.back_activation_function(a)
+
         return x
