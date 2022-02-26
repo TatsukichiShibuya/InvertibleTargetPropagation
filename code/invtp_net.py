@@ -222,7 +222,7 @@ class invtp_net(net):
         return self.MSELoss(h1, h)
 
     def reconstruction_loss_of_dataset(self, data_loader):
-        return 0
+        return torch.tensor(0)
         rec_loss = 0
         for x, y in data_loader:
             x, y = x.to(self.device), y.to(self.device)
