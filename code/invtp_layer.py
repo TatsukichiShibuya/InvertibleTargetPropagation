@@ -13,7 +13,7 @@ class invtp_layer:
         self.back_weight = self.weight.T.detach().clone().requires_grad_()
         self.back_weight.retain_grad()
         """
-        self.back_weight = torch.normal(0, 1, size=torch.T.shape)
+        self.back_weight = torch.normal(0, 1, size=self.weight.T.shape)
 
         # functions
         if activation_function == "leakyrelu":
