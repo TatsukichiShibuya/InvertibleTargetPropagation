@@ -13,7 +13,7 @@ class invtp_layer:
         self.back_weight = self.weight.T.detach().clone().requires_grad_()
         self.back_weight.retain_grad()
         """
-        mean, std = torch.mean(self.weight, dim=0), torch.std(self.weight, dim=0)
+        mean, std = torch.mean(self.weight), torch.std(self.weight)
         self.back_weight = torch.normal(mean, std, size=self.weight.shape, device=device).T
 
         # functions
