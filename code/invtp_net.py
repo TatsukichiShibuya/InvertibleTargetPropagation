@@ -174,8 +174,8 @@ class invtp_net(net):
         # initialize
         loss = self.loss_function(y_pred, y)
         for d in range(self.depth):
-            if self.layers[d].linear_activation.grad is not None:
-                self.layers[d].linear_activation.grad.zero_()
+            if self.layers[d].BNswx.grad is not None:
+                self.layers[d].BNswx.grad.zero_()
         loss.backward(retain_graph=True)
 
         with torch.no_grad():
