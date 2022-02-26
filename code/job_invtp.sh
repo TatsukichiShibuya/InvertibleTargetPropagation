@@ -1,7 +1,7 @@
 #!/bin/bash
 #$ -cwd
 #$ -l f_node=1
-#$ -l h_rt=06:00:00
+#$ -l h_rt=01:00:00
 #$ -j y
 #$ -o output/o.$JOB_ID
 export PYENV_ROOT="$HOME/.pyenv"
@@ -9,6 +9,4 @@ export PATH="$PYENV_ROOT/bin:$PATH"
 eval "$(pyenv init --path)"
 eval "$(pyenv init -)"
 eval "$(pyenv virtualenv-init -)"
-if [ "${1}" = "invCC" ];then
-  wandb agent tatsukichishibuya/InvertibleTargetPropagation/ezbberyp
-fi
+wandb agent tatsukichishibuya/InvTP/afrgvnef
