@@ -139,7 +139,7 @@ class invtp_net(net):
     def train_back_weights(self):
         for d in range(self.depth):
             inv = torch.pinverse(self.layers[d].weight)
-            inv = inv + torch.normal(0, 0.01, size=inv.shape, device=self.device)
+            inv = inv + torch.normal(0, 0.001, size=inv.shape, device=self.device)
             self.layers[d].back_weight = inv.detach().clone().requires_grad_()
             self.layers[d].back_weight.retain_grad()
 
@@ -202,8 +202,8 @@ class invtp_net(net):
             if self.layers[d].weight.grad is not None:
                 self.layers[d].weight.grad.zero_()
             loss.backward(retain_graph=True)
-            self.layers[d].weight = (self.layers[d].weight - (lr / batch_size * ((d + 1) /
-                                     (self.depth + 1))) * self.layers[d].weight.grad).detach().requires_grad_()
+            self.layers[d].weight = (self.layers[d].weight - (lr / batch_size *
+                                     ((d + 1) / self.depth)) * self.layers[d].weight.grad).detach().requires_grad_()
 
     def reconstruction_loss(self, x):
         h1 = self.layers[0].forward(x)
