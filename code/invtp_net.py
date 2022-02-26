@@ -138,7 +138,7 @@ class invtp_net(net):
 
     def train_back_weights(self):
         for d in range(self.depth):
-            inv = torch.pinverse(self.layers[d].weight)
+            inv = torch.pinverse(torch.sign(self.layers[d].weight))
             self.layers[d].back_weight = inv.detach().clone().requires_grad_()
             self.layers[d].back_weight.retain_grad()
 
