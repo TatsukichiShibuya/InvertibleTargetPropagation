@@ -143,9 +143,12 @@ class invtp_net(net):
             inv = inv + torch.normal(0, 0.001, size=inv.shape, device=self.device)
             self.layers[d].back_weight = inv.detach().clone()
         """
+        """
         for d in range(self.depth):
             w = torch.sign(self.layers[d].weight.T)
             self.layers[d].back_weight = w.detach().clone()
+        """
+        return
 
     def compute_target(self, x, y, stepsize, refinement_iter):
         if self.TARGET_TYPE == "DCTP":
