@@ -167,6 +167,7 @@ class invtp_net(net):
                 self.layers[d].target = self.layers[d].target + self.layers[d].BNswx
                 self.layers[d].target = self.layers[d].target - \
                     self.layers[d + 1].backward(self.layers[d + 1].BNswx)
+                self.layers[d].target = batch_normalization(self.layers[d].target)
 
     def compute_target_DTTP(self, x, y, stepsize, refinement_iter):
         y_pred = self.forward(x)
