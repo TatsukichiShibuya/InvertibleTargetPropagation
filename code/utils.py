@@ -56,3 +56,15 @@ def plot_hist_log(x, name):
     plt.savefig(name)
     plt.clf()
     plt.close()
+
+
+def batch_normalization(x, mean=None, std=None):
+    if mean is None:
+        mean = torch.mean(x, dim=0)
+    if std is None:
+        std = torch.std(x, dim=0)
+    return (x - mean) / std
+
+
+def batch_normalization_inverse(y, mean, std):
+    return y * std + mean

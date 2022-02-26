@@ -1,6 +1,6 @@
 from net import net
 from invtp_layer import invtp_layer
-from utils import calc_angle
+from utils import calc_angle, batch_normalization, batch_normalization_inverse
 
 import sys
 import time
@@ -190,7 +190,7 @@ class invtp_net(net):
                     gt = self.layers[d + 1].backward(self.layers[d + 1].target)
                     ft = self.layers[d + 1].forward(self.layers[d].target, update=False)
                     gft = self.layers[d + 1].backward(ft)
-                    self.layers[d].target = self.layers[d].target + gt - gft
+                    self.layers[d].target = batch_normalization(self.layers[d].target + gt - gft)
 
     def update_weights(self, x, lr):
         self.forward(x)
