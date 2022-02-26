@@ -24,7 +24,7 @@ class invtp_layer:
             self.back_activation_function = (lambda x: x)
         elif activation_function == "tanh":
             self.activation_function = nn.Tanh()
-            self.back_activation_function = (lambda x: x)
+            self.back_activation_function = nn.Tanh()
         else:
             sys.tracebacklimit = 0
             raise NotImplementedError(f"activation_function : {activation_function} ?")
