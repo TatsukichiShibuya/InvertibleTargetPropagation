@@ -137,6 +137,7 @@ class invtp_net(net):
                         print(f"\ttarget angle {d}: {target_angle_sum[d].item() / datasize}")
 
     def train_back_weights(self):
+        return
         for d in range(self.depth):
             inv = torch.pinverse(self.layers[d].weight)
             inv = inv + torch.normal(0, 0.001, size=inv.shape, device=self.device)
