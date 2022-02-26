@@ -51,6 +51,6 @@ class invtp_layer:
         mean, std = torch.mean(self.swx, dim=0), torch.std(self.swx, dim=0)
         s = batch_normalization_inverse(h, mean, std)
         a = self.back_activation_function(s)
-        x = a @ self.weight
+        x = a @ torch.sign(self.weight)
         x = batch_normalization(x)
         return x
