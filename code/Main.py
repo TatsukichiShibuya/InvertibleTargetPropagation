@@ -4,6 +4,7 @@ from dataset import make_regression_dataset, make_classification_dataset, make_C
 from bp_net import bp_net
 from dttp_net import dttp_net
 from mytp_net2 import mytp_net
+from invtp_net import invtp_net
 
 import os
 import sys
@@ -33,7 +34,8 @@ def get_args():
                         choices=['leakyrelu', 'sigmoid', 'relu', 'tanh'])
 
     # learning algorithm
-    parser.add_argument("--algorithm",  type=str, default="BP", choices=['BP', 'DTTP', 'MyTP'])
+    parser.add_argument("--algorithm",  type=str, default="BP",
+                        choices=['BP', 'DTTP', 'MyTP', 'InvTP'])
     parser.add_argument("--epochs",     type=int, default=100)
     parser.add_argument("--batch_size",  type=int, default=128)
     parser.add_argument("--seed",       type=int, default=1)
@@ -61,7 +63,8 @@ def get_args():
     parser.add_argument("--agent", action="store_true")
     parser.add_argument("--type",  type=str, default="CCC", choices=['CCC', 'CCT', 'CTC', 'CTT',
                                                                      'TCC', 'TCT', 'TTC', 'TTT',
-                                                                     'ICC', 'ICT', 'ITC', 'ITT'])
+                                                                     'ICC', 'ICT', 'ITC', 'ITT',
+                                                                     'T', 'C'])
 
     args = parser.parse_args()
     return args
@@ -122,9 +125,15 @@ def main(**kwargs):
                 config["epochs (backward)"] = kwargs["b_epochs"]
                 config["sigma (backward)"] = kwargs["b_sigma"]
                 config["refinement iteration"] = kwargs["refinement_iter"]
+                config["learning rate"] = kwargs["learning_rate"]
                 if kwargs["algorithm"] == "MyTP":
                     config["refinement type"] = kwargs["refinement_type"]
                     config["loss (backward)"] = kwargs["b_loss"]
+            elif kwargs["algorithm"] == "InvTP":
+                config["direct depth"] = kwargs["direct_depth"]
+                config["stepsize"] = kwargs["stepsize"]
+                config["refinement iteration"] = kwargs["refinement_iter"]
+                config["learning rate"] = kwargs["learning_rate"]
             wandb.init(config=config)
 
     # make dataset
@@ -186,6 +195,16 @@ def main(**kwargs):
                          activation_function=kwargs["activation_function"],
                          loss_function=loss_function,
                          type=kwargs["type"])
+    elif kwargs["algorithm"] == "InvTP":
+        model = invtp_net(device=device,
+                          depth=kwargs["depth"],
+                          in_dim=kwargs["in_dim"],
+                          out_dim=kwargs["out_dim"],
+                          hid_dim=kwargs["hid_dim"],
+                          direct_depth=kwargs["direct_depth"],
+                          activation_function=kwargs["activation_function"],
+                          loss_function=loss_function,
+                          type=kwargs["type"])
 
     # train
     if kwargs["algorithm"] == "BP":
@@ -199,6 +218,9 @@ def main(**kwargs):
         model.train(train_loader, valid_loader, kwargs["epochs"], kwargs["stepsize"], kwargs["lr_ratio"], kwargs["learning_rate"],
                     kwargs["learning_rate_for_backward"], kwargs["weight_scaling"], kwargs["b_epochs"], kwargs["b_sigma"],
                     kwargs["refinement_iter"], kwargs["log"])
+    elif kwargs["algorithm"] == "InvTP":
+        model.train(train_loader, valid_loader, kwargs["epochs"], kwargs["stepsize"],
+                    kwargs["learning_rate"], kwargs["refinement_iter"], kwargs["log"])
 
     # test
     print(f"\ttest  : {model.test(test_loader)}")

@@ -26,7 +26,6 @@ class net(metaclass=ABCMeta):
         return self.forward(x, update=False)
 
     def test(self, data_loader):
-        """ return loss, acc """
         pred, label = None, None
         for x, y in data_loader:
             x, y = x.to(self.device), y.to(self.device)
