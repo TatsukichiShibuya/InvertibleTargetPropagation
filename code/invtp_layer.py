@@ -15,7 +15,8 @@ class invtp_layer:
         """
         mean, std = self.weight.mean().item(), self.weight.std().item()
         shape = self.weight.T.shape
-        self.back_weight = torch.zeros(size=shape, device=device).normal_(mean, std, generator=0)
+        self.back_weight = torch.zeros(size=shape, device=device).normal_(
+            mean, std, generator=torch.manual_seed(0))
 
         # functions
         if activation_function == "leakyrelu":
