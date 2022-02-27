@@ -18,6 +18,13 @@ def fix_seed(seed):
     torch.backends.cudnn.benchmark = False
 
 
+def get_seed(seed, device):
+    if device.type == 'cpu':
+        return torch.manual_seed(seed)
+    else:
+        return torch.cuda.manual_seed(seed)
+
+
 def plot_regression(model, name):
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')

@@ -1,6 +1,6 @@
 import torch
 from torch import nn
-from utils import batch_normalization, batch_normalization_inverse
+from utils import batch_normalization, batch_normalization_inverse, get_seed
 
 
 class invtp_layer:
@@ -15,8 +15,9 @@ class invtp_layer:
         """
         mean, std = self.weight.mean().item(), self.weight.std().item()
         shape = self.weight.T.shape
+        generator = get_seed(0, device)
         self.back_weight = torch.zeros(size=shape, device=device).normal_(
-            mean, std, generator=torch.manual_seed(0))
+            mean, std, generator=generator)
 
         # functions
         if activation_function == "leakyrelu":

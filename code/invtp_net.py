@@ -1,6 +1,6 @@
 from net import net
 from invtp_layer import invtp_layer
-from utils import calc_angle, batch_normalization, batch_normalization_inverse
+from utils import calc_angle, batch_normalization, batch_normalization_inverse, get_seed
 
 import sys
 import time
@@ -152,8 +152,9 @@ class invtp_net(net):
             for d in range(self.depth):
                 mean, std = self.layers[d].weight.mean().item(), self.layers[d].weight.std().item()
                 shape = self.layers[d].back_weight.shape
+                generator = get_seed(epoch, self.device)
                 self.layers[d].back_weight = torch.zeros(size=shape, device=self.device).normal_(
-                    mean, std, generator=torch.manual_seed(epochs))
+                    mean, std, generator=generator)
 
     def compute_target(self, x, y, stepsize, refinement_iter):
         if self.TARGET_TYPE == "DCTP":
