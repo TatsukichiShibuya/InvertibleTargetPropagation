@@ -148,6 +148,7 @@ class invtp_net(net):
             w = torch.sign(self.layers[d].weight.T)
             self.layers[d].back_weight = w.detach().clone()
         """
+        """
         if epoch % 50 == 0:
             for d in range(self.depth):
                 mean, std = self.layers[d].weight.mean().item(), self.layers[d].weight.std().item()
@@ -155,6 +156,8 @@ class invtp_net(net):
                 generator = get_seed(epoch, self.device)
                 self.layers[d].back_weight = torch.zeros(size=shape, device=self.device).normal_(
                     mean, std, generator=generator)
+        """
+        return
 
     def compute_target(self, x, y, stepsize, refinement_iter):
         if self.TARGET_TYPE == "DCTP":

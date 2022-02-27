@@ -31,10 +31,10 @@ class bp_layer:
 
     def forward(self, x, update=True):
         if update:
-            self.activation = self.activation_function(x)
-            self.linear_activation = self.activation @ self.weight.T
-            return self.linear_activation
+            self.linear_activation = x @ self.weight.T
+            self.activation = self.activation_function(self.linear_activation)
+            return self.activation
         else:
-            a = self.activation_function(x)
-            h = a @ self.weight.T
+            a = x @ self.weight.T
+            h = self.activation_function(a)
             return h

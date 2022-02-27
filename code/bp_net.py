@@ -21,17 +21,12 @@ class bp_net(net):
         for i in range(1, self.depth - 1):
             layers[i] = bp_layer(hid_dim, hid_dim, activation_function, self.device)
         # last layer
-        #layers[-1] = bp_layer(hid_dim, out_dim, "linear", self.device)
         layers[-1] = bp_layer(hid_dim, out_dim, activation_function, self.device)
 
         return layers
 
     def train(self, train_loader, valid_loader, epochs, lr, log):
         for e in range(epochs):
-            # monitor
-            last_weights = [None] * self.depth
-            for d in range(self.depth):
-                last_weights[d] = self.layers[d].weight
             start_time = time.time()
 
             # train forward
@@ -59,13 +54,6 @@ class bp_net(net):
                         log_dict["valid accuracy"] = valid_acc
                     log_dict["time"] = end_time - start_time
 
-                    # monitor
-                    """
-                    for d in range(self.depth):
-                        sub = self.MSELoss(self.layers[d].weight, last_weights[d])
-                        shape = self.layers[d].weight.shape
-                        log_dict[f"weight moving {d}"] = float(sub) / (shape[0] * shape[1])
-                    """
                     wandb.log(log_dict)
                 else:
                     # results
@@ -76,24 +64,17 @@ class bp_net(net):
                     if valid_acc is not None:
                         print(f"\tvalid acc      : {valid_acc}")
 
-                    # monitor
-                    """
-                    for d in range(self.depth):
-                        sub = self.MSELoss(self.layers[d].weight, last_weights[d])
-                        shape = self.layers[d].weight.shape
-                        print(f"\tweight moving {d}: {float(sub) / (shape[0] * shape[1])}")
-                    for d in range(self.depth):
-                        print(f"\tcond {d}: {torch.linalg.cond(self.layers[d].weight)}")
-                    """
-
-    def update_weights(self, y, y_pred, lr):
+    def update_weights_with_torch(self, y, y_pred, lr):
         loss = self.loss_function(y_pred, y)
         batch_size = len(y)
         self.zero_grad()
         loss.backward()
-        for d in range(3, self.depth):
+        for d in range(0, self.depth):
             self.layers[d].weight = (self.layers[d].weight - (lr / batch_size)
                                      * self.layers[d].weight.grad).detach().requires_grad_()
+
+    def update_weights(self, y, y_pred, lr):
+        pass
 
     def zero_grad(self):
         for d in range(self.depth):

@@ -83,6 +83,27 @@ def make_CIFAR10(size):
     return trainset, testset, testset
 
 
+def make_fashionMNIST(size):
+    transform = transforms.Compose([transforms.ToTensor(),
+                                    transforms.Normalize((0.1307,), (0.3081,))])
+
+    fashion_train = tv.datasets.FashionMNIST(
+        root='./data', train=True, download=True, transform=transform)
+    train_x, train_y = torch.empty([60000, 784]), torch.empty([60000], dtype=torch.long)
+    for i, t in enumerate(list(fashion_train)):
+        train_x[i], train_y[i] = t[0].reshape((-1)), t[1]
+    trainset = MyClassification(train_x, train_y)
+
+    fashion_test = tv.datasets.FashionMNIST(
+        root='./data', train=False, download=True, transform=transform)
+    test_x, test_y = torch.empty([10000, 784]), torch.empty([10000], dtype=torch.long)
+    for i, t in enumerate(list(fashion_test)):
+        test_x[i], test_y[i] = t[0].reshape((-1)), t[1]
+    testset = MyClassification(test_x, test_y)
+
+    return trainset, testset, testset
+
+
 def make_classification_dataset2(size):
     # (trainsize : validsize : testsize) = (5 : 1 : 1)
     trainsize = max(size * 5 // 7, 1)
