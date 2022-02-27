@@ -150,7 +150,7 @@ class invtp_net(net):
         """
         if epoch % 50 == 0:
             for d in range(self.depth):
-                mean, std = self.layers[d].weight.mean(), self.layers[d].weight.std()
+                mean, std = self.layers[d].weight.mean().item(), self.layers[d].weight.std().item()
                 shape = self.layers[d].back_weight.shape
                 self.layers[d].back_weight = torch.zeros(size=shape, device=self.device).normal_(
                     mean, std, generator=torch.manual_seed(epochs))
