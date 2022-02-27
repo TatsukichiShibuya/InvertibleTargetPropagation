@@ -1,6 +1,6 @@
 import os
 import sys
 args = ' '.join(map(str, sys.argv[1:]))
-command = f'python Main.py --algorithm=DTTP {args} --log --agent'
+command = f'python Main.py --algorithm=DTTP {args} --type=CCC --log --agent'
 print(command)
 os.system(command)
