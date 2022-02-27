@@ -51,7 +51,7 @@ class invtp_net(net):
             start_time = time.time()
 
             # train backward
-            self.train_back_weights()
+            self.train_back_weights(e)
 
             rec_loss = self.reconstruction_loss_of_dataset(train_loader)
             if torch.isnan(rec_loss).any():
