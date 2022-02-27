@@ -64,7 +64,7 @@ class bp_net(net):
                     if valid_acc is not None:
                         print(f"\tvalid acc      : {valid_acc}")
 
-    def update_weights_with_torch(self, y, y_pred, lr):
+    def update_weights(self, y, y_pred, lr):
         loss = self.loss_function(y_pred, y)
         batch_size = len(y)
         self.zero_grad()
@@ -73,8 +73,10 @@ class bp_net(net):
             self.layers[d].weight = (self.layers[d].weight - (lr / batch_size)
                                      * self.layers[d].weight.grad).detach().requires_grad_()
 
+    """
     def update_weights(self, y, y_pred, lr):
         pass
+    """
 
     def zero_grad(self):
         for d in range(self.depth):
