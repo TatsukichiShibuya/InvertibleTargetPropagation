@@ -65,6 +65,12 @@ def plot_hist_log(x, name):
     plt.close()
 
 
+def quantization(x):
+    x[x >= 0] = 1
+    x[x <= 0] = -1
+    return x
+
+
 def batch_normalization(x, mean=None, std=None):
     if mean is None:
         mean = torch.mean(x, dim=0)

@@ -1,5 +1,6 @@
 import torch
 from torch import nn
+from utils import batch_normalization
 
 import sys
 
@@ -33,8 +34,10 @@ class bp_layer:
         if update:
             self.linear_activation = x @ self.weight.T
             self.activation = self.activation_function(self.linear_activation)
+            self.activation = batch_normalization(self.activation)
             return self.activation
         else:
             a = x @ self.weight.T
             h = self.activation_function(a)
+            h = batch_normalization(h)
             return h

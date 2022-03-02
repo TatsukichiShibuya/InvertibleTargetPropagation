@@ -47,6 +47,8 @@ class invtp_net(net):
             torch.cuda.empty_cache()
             target_ratio_sum = [0] * (self.depth - self.direct_depth)
             target_angle_sum = [0] * (self.depth - self.direct_depth)
+            bp_angle_sum = [0] * self.depth
+
             monitor_time = 0
             start_time = time.time()
 
@@ -86,8 +88,26 @@ class invtp_net(net):
                     monitor_time = monitor_time + monitor_end_time - monitor_start_time
                 ###### monitor end ######
 
+                ###### monitor start ######
+                monitor_start_time = time.time()
+                y_pred = self.forward(x)
+                loss = self.loss_function(y_pred, y)
+                for d in range(self.depth):
+                    if self.layers[d].weight.grad is not None:
+                        self.layers[d].weight.grad.zero_()
+                loss.backward()
+                bp_grad = [None] * self.depth
+                for d in range(self.depth):
+                    bp_grad[d] = self.layers[d].weight.grad.clone()
+                monitor_end_time = time.time()
+                monitor_time = monitor_time + monitor_end_time - monitor_start_time
+                ###### monitor end ######
+
                 # train forward
-                self.update_weights(x, lr)
+                tp_grad = self.update_weights(x, lr)
+                for d in range(self.depth):
+                    bp_angle_sum[d] += calc_angle(tp_grad[d].reshape((1, -1)),
+                                                  bp_grad[d].reshape((1, -1))).sum()
 
             end_time = time.time()
             print(f"epochs {e}: {end_time - start_time - monitor_time:.2f}, {monitor_time:.2f}")
@@ -118,6 +138,9 @@ class invtp_net(net):
                         log_dict[f"target ratio {d}"] = target_ratio_sum[d].item() / datasize
                         log_dict[f"target angle {d}"] = target_angle_sum[d].item() / datasize
 
+                    for d in range(self.depth):
+                        log_dict[f"BP angle {d}"] = bp_angle_sum[d].item() / len(train_loader)
+
                     wandb.log(log_dict)
 
                 else:
@@ -135,6 +158,9 @@ class invtp_net(net):
                     for d in range(self.depth - self.direct_depth):
                         print(f"\ttarget ratio {d}: {target_ratio_sum[d].item() / datasize}")
                         print(f"\ttarget angle {d}: {target_angle_sum[d].item() / datasize}")
+
+                    for d in range(self.depth):
+                        print(f"\tBP angle {d}    : {bp_angle_sum[d].item() / len(train_loader)}")
 
     def train_back_weights(self, epoch):
         """
@@ -213,13 +239,15 @@ class invtp_net(net):
     def update_weights(self, x, lr):
         self.forward(x)
         batch_size = len(x)
+        tp_grad = [None] * self.depth
         for d in reversed(range(self.depth)):
             loss = torch.norm(self.layers[d].target - self.layers[d].BNswx)**2
             if self.layers[d].weight.grad is not None:
                 self.layers[d].weight.grad.zero_()
             loss.backward(retain_graph=True)
-            self.layers[d].weight = (self.layers[d].weight - (lr / batch_size *
-                                     ((d + 1) / self.depth)) * self.layers[d].weight.grad).detach().requires_grad_()
+            tp_grad[d] = (lr / batch_size * ((d + 1) / self.depth)) * self.layers[d].weight.grad
+            self.layers[d].weight = (self.layers[d].weight - tp_grad[d]).detach().requires_grad_()
+        return tp_grad
 
     def reconstruction_loss(self, x):
         h1 = self.layers[0].forward(x)

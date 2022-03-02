@@ -1,6 +1,6 @@
 import torch
 from torch import nn
-from utils import batch_normalization, batch_normalization_inverse, get_seed
+from utils import batch_normalization, batch_normalization_inverse, get_seed, quantization
 
 
 class invtp_layer:
@@ -9,10 +9,6 @@ class invtp_layer:
         self.weight = torch.empty(out_dim, in_dim, requires_grad=True, device=device)
         nn.init.orthogonal_(self.weight)
 
-        """
-        self.back_weight = self.weight.T.detach().clone().requires_grad_()
-        self.back_weight.retain_grad()
-        """
         mean, std = self.weight.mean().item(), self.weight.std().item()
         shape = self.weight.T.shape
         generator = get_seed(0, device)
@@ -55,9 +51,7 @@ class invtp_layer:
             return h
 
     def backward(self, h):
-        mean, std = torch.mean(self.swx, dim=0), torch.std(self.swx, dim=0)
-        s = batch_normalization_inverse(h, mean, std)
-        a = self.back_activation_function(s)
-        x = a @ self.back_weight.T
-        x = batch_normalization(x)
+        a = h @ self.back_weight.T
+        s = self.back_activation_function(a)
+        x = batch_normalization(s)
         return x
