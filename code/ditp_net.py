@@ -1,6 +1,6 @@
 from net import net
-from invtp_layer import invtp_layer
-from utils import calc_angle, batch_normalization, batch_normalization_inverse, get_seed
+from ditp_layer import ditp_layer_forward, ditp_layer_backward
+from utils import calc_angle, batch_normalization
 
 import sys
 import time
@@ -10,31 +10,49 @@ from torch import nn
 import numpy as np
 
 
-class invtp_net(net):
+class ditp_net(net):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.direct_depth = kwargs["direct_depth"]
         assert 1 <= self.direct_depth <= self.depth
-
-        if kwargs["type"] == "C":
-            self.TARGET_TYPE = "DCTP"
-        elif kwargs["type"] == "T":
-            self.TARGET_TYPE = "DTTP"
+        self.layers_backward = self.init_layers_backward(kwargs["in_dim"],
+                                                         kwargs["hid_dim"],
+                                                         kwargs["out_dim"],
+                                                         kwargs["activation_function"])
 
     def init_layers(self, in_dim, hid_dim, out_dim, activation_function):
-        layers = [None] * self.depth
+        layers_forward = [None] * self.depth
 
-        # first layer
-        layers[0] = invtp_layer(in_dim, hid_dim, activation_function, self.device, 0)
-        # hidden layers
-        for d in range(1, self.depth - 1):
-            layers[d] = invtp_layer(hid_dim, hid_dim, activation_function, self.device, d)
-        # last layer
-        layers[-1] = invtp_layer(hid_dim, out_dim, activation_function, self.device, self.depth - 1)
+        # dims
+        self.dims = [0] * (self.depth + 1)
+        self.dims[0], self.dims[-1] = in_dim, out_dim
+        for d in range(self.depth - 1):
+            self.dims[d + 1] = hid_dim
 
-        return layers
+        # forward
+        for d in range(self.depth):
+            layers_forward[d] = ditp_layer_forward(self.dims[d], self.dims[d + 1],
+                                                   activation_function, self.device, (d + 1) * 11)
+        return layers_forward
 
-    def train(self, train_loader, valid_loader, epochs, stepsize, lr, refinement_iter, log):
+    def init_layers_backward(self, in_dim, hid_dim, out_dim, activation_function):
+        layers_backward = [None] * (self.depth - self.direct_depth)
+
+        # dims
+        self.dims = [0] * (self.depth + 1)
+        self.dims[0], self.dims[-1] = in_dim, out_dim
+        for d in range(self.depth - 1):
+            self.dims[d + 1] = hid_dim
+
+        # backward
+        D = self.depth - self.direct_depth
+        for d in range(D):
+            layers_backward[d] = ditp_layer_backward(self.dims[D + 1], hid_dim,  self.dims[D - d], 2,
+                                                     activation_function, self.device, (d + 1) * 13)
+
+        return layers_backward
+
+    def train(self, train_loader, valid_loader, epochs, stepsize, lr, log):
         # reconstruction loss
         rec_loss = self.reconstruction_loss_of_dataset(train_loader)
         if torch.isnan(rec_loss).any():
@@ -66,7 +84,7 @@ class invtp_net(net):
                 x, y = x.to(self.device), y.to(self.device)
 
                 # compute target
-                self.compute_target(x, y, stepsize, refinement_iter)
+                self.compute_target(x, y, stepsize)
 
                 ###### monitor start ######
                 monitor_start_time = time.time()
@@ -163,35 +181,9 @@ class invtp_net(net):
                         print(f"\tBP angle {d}    : {bp_angle_sum[d].item() / len(train_loader)}")
 
     def train_back_weights(self, epoch):
-        """
-        for d in range(self.depth):
-            inv = torch.pinverse(self.layers[d].weight)
-            inv = inv + torch.normal(0, 0.001, size=inv.shape, device=self.device)
-            self.layers[d].back_weight = inv.detach().clone()
-        """
-        """
-        for d in range(self.depth):
-            w = torch.sign(self.layers[d].weight.T)
-            self.layers[d].back_weight = w.detach().clone()
-        """
-        """
-        if epoch % 50 == 0:
-            for d in range(self.depth):
-                mean, std = self.layers[d].weight.mean().item(), self.layers[d].weight.std().item()
-                shape = self.layers[d].back_weight.shape
-                generator = get_seed(epoch, self.device)
-                self.layers[d].back_weight = torch.zeros(size=shape, device=self.device).normal_(
-                    mean, std, generator=generator)
-        """
         return
 
-    def compute_target(self, x, y, stepsize, refinement_iter):
-        if self.TARGET_TYPE == "DCTP":
-            self.compute_target_DCTP(x, y, stepsize)
-        elif self.TARGET_TYPE == "DTTP":
-            self.compute_target_DTTP(x, y, stepsize, refinement_iter)
-
-    def compute_target_DCTP(self, x, y, stepsize):
+    def compute_target(self, x, y, stepsize):
         y_pred = self.forward(x)
 
         # initialize
@@ -202,39 +194,15 @@ class invtp_net(net):
         loss.backward(retain_graph=True)
 
         with torch.no_grad():
-            for d in range(self.depth - self.direct_depth, self.depth):
+            D = self.depth - self.direct_depth
+            for d in range(D, self.depth):
                 self.layers[d].target = self.layers[d].BNswx - stepsize * self.layers[d].BNswx.grad
-
-            for d in reversed(range(self.depth - self.direct_depth)):
-                self.layers[d].target = self.layers[d + 1].backward(self.layers[d + 1].target)
+            for i, d in enumerate(reversed(range(D))):
+                self.layers[d].target = self.layers_backward[i].backward(self.layers[D].target)
                 self.layers[d].target = self.layers[d].target + self.layers[d].BNswx
                 self.layers[d].target = self.layers[d].target - \
-                    self.layers[d + 1].backward(self.layers[d + 1].BNswx)
+                    self.layers_backward[i].backward(self.layers[D].BNswx)
                 self.layers[d].target = batch_normalization(self.layers[d].target)
-
-    def compute_target_DTTP(self, x, y, stepsize, refinement_iter):
-        y_pred = self.forward(x)
-
-        # initialize
-        loss = self.loss_function(y_pred, y)
-        for d in range(self.depth):
-            if self.layers[d].BNswx.grad is not None:
-                self.layers[d].BNswx.grad.zero_()
-        loss.backward(retain_graph=True)
-
-        with torch.no_grad():
-            for d in range(self.depth - self.direct_depth, self.depth):
-                self.layers[d].target = self.layers[d].BNswx - stepsize * self.layers[d].BNswx.grad
-
-            for d in reversed(range(self.depth - self.direct_depth)):
-                self.layers[d].target = self.layers[d + 1].backward(self.layers[d + 1].target)
-
-            for i in range(refinement_iter):
-                for d in reversed(range(self.depth - self.direct_depth)):
-                    gt = self.layers[d + 1].backward(self.layers[d + 1].target)
-                    ft = self.layers[d + 1].forward(self.layers[d].target, update=False)
-                    gft = self.layers[d + 1].backward(ft)
-                    self.layers[d].target = batch_normalization(self.layers[d].target + gt - gft)
 
     def update_weights(self, x, lr):
         self.forward(x)
@@ -245,7 +213,7 @@ class invtp_net(net):
             if self.layers[d].weight.grad is not None:
                 self.layers[d].weight.grad.zero_()
             loss.backward(retain_graph=True)
-            #alpha = lr / batch_size * ((self.depth - d) / self.depth)
+            # alpha = lr / batch_size * ((d + 1) / self.depth)
             alpha = lr / batch_size
             tp_grad[d] = alpha * self.layers[d].weight.grad
             self.layers[d].weight = (self.layers[d].weight - tp_grad[d]).detach().requires_grad_()
@@ -256,11 +224,12 @@ class invtp_net(net):
         h = h1
         for d in range(1, self.depth - self.direct_depth + 1):
             h = self.layers[d].forward(h)
-        for d in reversed(range(1, self.depth - self.direct_depth + 1)):
-            h = self.layers[d].backward(h)
+        for d in range(self.depth - self.direct_depth):
+            h = self.layers_backward[d].backward(h)
         return self.MSELoss(h1, h)
 
     def reconstruction_loss_of_dataset(self, data_loader):
+        return torch.tensor(0)
         rec_loss = 0
         for x, y in data_loader:
             x, y = x.to(self.device), y.to(self.device)

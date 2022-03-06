@@ -1,10 +1,11 @@
-from utils import plot_regression, worker_init_fn, fix_seed
-from dataset import make_regression_dataset, make_classification_dataset, make_CIFAR10, make_fashionMNIST
+from utils import plot_regression, worker_init_fn, fix_seed, combined_loss
+from dataset import make_regression_dataset, make_MNIST, make_CIFAR10, make_fashionMNIST
 
 from bp_net import bp_net
 from dttp_net import dttp_net
 from mytp_net2 import mytp_net
 from invtp_net import invtp_net
+from ditp_net import ditp_net
 
 import os
 import sys
@@ -22,7 +23,8 @@ def get_args():
 
     # dataset
     parser.add_argument("--problem",    type=str, default="classification",
-                        choices=['regression', 'classification', 'CIFAR10', "fashionMNIST"])
+                        choices=['regression', 'MNIST', 'CIFAR10', "fashionMNIST"])
+    parser.add_argument("--label_augmentation", action="store_true")
     parser.add_argument("--datasize",   type=int, default=70000)
 
     # model architecture
@@ -32,10 +34,9 @@ def get_args():
     parser.add_argument("--out_dim",    type=int, default=10)
     parser.add_argument("--activation_function", type=str, default="leakyrelu",
                         choices=['leakyrelu', 'sigmoid', 'relu', 'tanh'])
-
     # learning algorithm
     parser.add_argument("--algorithm",  type=str, default="BP",
-                        choices=['BP', 'DTTP', 'MyTP', 'InvTP'])
+                        choices=['BP', 'DTTP', 'MyTP', 'InvTP', "DITP", "FA"])
     parser.add_argument("--epochs",     type=int, default=100)
     parser.add_argument("--batch_size",  type=int, default=128)
     parser.add_argument("--seed",       type=int, default=1)
@@ -117,7 +118,7 @@ def main(**kwargs):
                       "activation function": kwargs["activation_function"]}
             if kwargs["algorithm"] == "BP":
                 config["learning rate"] = kwargs["learning_rate"]
-            elif kwargs["algorithm"] in ["DTTP", "MyTP"]:
+            elif kwargs["algorithm"] in ["DTTP", "MyTP", "InvTP", "DITP"]:
                 config["direct depth"] = kwargs["direct_depth"]
                 config["stepsize"] = kwargs["stepsize"]
                 config["lr ratio"] = kwargs["lr_ratio"]
@@ -140,15 +141,24 @@ def main(**kwargs):
     if kwargs["problem"] == "regression":
         trainset, validset, testset = make_regression_dataset(kwargs["datasize"], kwargs["in_dim"])
         loss_function = nn.MSELoss(reduction="sum")
-    elif kwargs["problem"] == "classification":
-        trainset, validset, testset = make_classification_dataset(kwargs["datasize"])
-        loss_function = nn.CrossEntropyLoss(reduction="sum")
-    elif kwargs["problem"] == "CIFAR10":
-        trainset, validset, testset = make_CIFAR10(kwargs["datasize"])
-        loss_function = nn.CrossEntropyLoss(reduction="sum")
-    elif kwargs["problem"] == "fashionMNIST":
-        trainset, validset, testset = make_fashionMNIST(kwargs["datasize"])
-        loss_function = nn.CrossEntropyLoss(reduction="sum")
+    else:
+        if kwargs["problem"] == "MNIST":
+            trainset, validset, testset = make_MNIST(kwargs["datasize"],
+                                                     kwargs["label_augmentation"],
+                                                     kwargs["hid_dim"])
+        elif kwargs["problem"] == "CIFAR10":
+            trainset, validset, testset = make_CIFAR10(kwargs["datasize"],
+                                                       kwargs["label_augmentation"],
+                                                       kwargs["hid_dim"])
+        elif kwargs["problem"] == "fashionMNIST":
+            trainset, validset, testset = make_fashionMNIST(kwargs["datasize"],
+                                                            kwargs["label_augmentation"],
+                                                            kwargs["hid_dim"])
+
+        if kwargs["label_augmentation"]:
+            loss_function = (lambda pred, label: combined_loss(pred, label))
+        else:
+            loss_function = nn.CrossEntropyLoss(reduction="sum")
 
     train_loader = torch.utils.data.DataLoader(trainset,
                                                batch_size=kwargs["batch_size"],
@@ -171,6 +181,14 @@ def main(**kwargs):
 
     # initialize model
     if kwargs["algorithm"] == "BP":
+        model = bp_net(device=device,
+                       depth=kwargs["depth"],
+                       in_dim=kwargs["in_dim"],
+                       out_dim=kwargs["out_dim"],
+                       hid_dim=kwargs["hid_dim"],
+                       activation_function=kwargs["activation_function"],
+                       loss_function=loss_function)
+    elif kwargs["algorithm"] == "FA":
         model = bp_net(device=device,
                        depth=kwargs["depth"],
                        in_dim=kwargs["in_dim"],
@@ -208,22 +226,40 @@ def main(**kwargs):
                           activation_function=kwargs["activation_function"],
                           loss_function=loss_function,
                           type=kwargs["type"])
+    elif kwargs["algorithm"] == "DITP":
+        model = ditp_net(device=device,
+                         depth=kwargs["depth"],
+                         in_dim=kwargs["in_dim"],
+                         out_dim=kwargs["out_dim"],
+                         hid_dim=kwargs["hid_dim"],
+                         direct_depth=kwargs["direct_depth"],
+                         activation_function=kwargs["activation_function"],
+                         loss_function=loss_function,
+                         type=kwargs["type"])
 
     # train
     if kwargs["algorithm"] == "BP":
         model.train(train_loader, valid_loader, kwargs["epochs"], kwargs["learning_rate"],
                     log=kwargs["log"])
+    elif kwargs["algorithm"] == "FA":
+        model.train(train_loader, valid_loader, kwargs["epochs"], kwargs["learning_rate"],
+                    log=kwargs["log"])
     elif kwargs["algorithm"] == "DTTP":
-        model.train(train_loader, valid_loader, kwargs["epochs"], kwargs["stepsize"], kwargs["lr_ratio"], kwargs["learning_rate"],
-                    kwargs["learning_rate_for_backward"], kwargs["weight_scaling"], kwargs["b_epochs"], kwargs["b_sigma"],
+        model.train(train_loader, valid_loader, kwargs["epochs"], kwargs["stepsize"],
+                    kwargs["lr_ratio"], kwargs["learning_rate"], kwargs["learning_rate_for_backward"],
+                    kwargs["weight_scaling"], kwargs["b_epochs"], kwargs["b_sigma"],
                     kwargs["refinement_iter"], kwargs["log"])
     elif kwargs["algorithm"] == "MyTP":
-        model.train(train_loader, valid_loader, kwargs["epochs"], kwargs["stepsize"], kwargs["lr_ratio"], kwargs["learning_rate"],
-                    kwargs["learning_rate_for_backward"], kwargs["weight_scaling"], kwargs["b_epochs"], kwargs["b_sigma"],
+        model.train(train_loader, valid_loader, kwargs["epochs"], kwargs["stepsize"],
+                    kwargs["lr_ratio"], kwargs["learning_rate"], kwargs["learning_rate_for_backward"],
+                    kwargs["weight_scaling"], kwargs["b_epochs"], kwargs["b_sigma"],
                     kwargs["refinement_iter"], kwargs["log"])
     elif kwargs["algorithm"] == "InvTP":
         model.train(train_loader, valid_loader, kwargs["epochs"], kwargs["stepsize"],
                     kwargs["learning_rate"], kwargs["refinement_iter"], kwargs["log"])
+    elif kwargs["algorithm"] == "DITP":
+        model.train(train_loader, valid_loader, kwargs["epochs"], kwargs["stepsize"],
+                    kwargs["learning_rate"], kwargs["log"])
 
     # test
     print(f"\ttest  : {model.test(test_loader)}")

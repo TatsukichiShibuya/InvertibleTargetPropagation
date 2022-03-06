@@ -1,5 +1,5 @@
 from net import net
-from bp_layer import bp_layer
+from fa_layer import fa_layer
 
 import time
 import wandb
@@ -8,7 +8,7 @@ import numpy as np
 from tqdm import tqdm
 
 
-class bp_net(net):
+class fa_net(net):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
@@ -16,12 +16,12 @@ class bp_net(net):
         layers = [None] * self.depth
 
         # first layer
-        layers[0] = bp_layer(in_dim, hid_dim, activation_function, self.device, 0)
+        layers[0] = fa_layer(in_dim, hid_dim, activation_function, self.device, 0)
         # hidden layers
         for d in range(1, self.depth - 1):
-            layers[d] = bp_layer(hid_dim, hid_dim, activation_function, self.device, d)
+            layers[d] = fa_layer(hid_dim, hid_dim, activation_function, self.device, d)
         # last layer
-        layers[-1] = bp_layer(hid_dim, out_dim, activation_function, self.device, self.depth - 1)
+        layers[-1] = fa_layer(hid_dim, out_dim, activation_function, self.device, self.depth - 1)
 
         return layers
 
@@ -34,7 +34,6 @@ class bp_net(net):
                 x, y = x.to(self.device), y.to(self.device)
                 y_pred = self.forward(x)
 
-                #self.update_weights(y, y_pred, lr)
                 self.update_weights(x, y, lr)
 
             end_time = time.time()
@@ -64,16 +63,6 @@ class bp_net(net):
                         print(f"\ttrain acc      : {train_acc}")
                     if valid_acc is not None:
                         print(f"\tvalid acc      : {valid_acc}")
-    """
-    def update_weights(self, y, y_pred, lr):
-        loss = self.loss_function(y_pred, y)
-        batch_size = len(y)
-        self.zero_grad()
-        loss.backward()
-        for d in range(self.depth):
-            self.layers[d].weight = (self.layers[d].weight - (lr / batch_size)
-                                     * self.layers[d].weight.grad).detach().requires_grad_()
-    """
 
     def update_weights(self, x, y, lr):
         y_pred = self.forward(x).requires_grad_()
@@ -86,9 +75,10 @@ class bp_net(net):
         grad = [None] * self.depth
         with torch.no_grad():
             for d in reversed(range(self.depth)):
-                g = g * self.layers[d].activation_derivative(self.layers[d].linear_activation)
+                std = torch.std(self.layers[d].activation)
+                g = g * self.layers[d].activation_derivative(self.layers[d].linear_activation) / std
                 grad[d] = g.T @ self.layers[d - 1].linear_activation if d >= 1 else g.T @ x
-                g = g @ self.layers[d].weight
+                g = g @ self.layers[d].fixed_weight
         for d in range(self.depth):
             self.layers[d].weight = (self.layers[d].weight - (lr / batch_size)
                                      * grad[d]).detach().requires_grad_()

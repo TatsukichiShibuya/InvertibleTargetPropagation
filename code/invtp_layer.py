@@ -4,16 +4,18 @@ from utils import batch_normalization, batch_normalization_inverse, get_seed, qu
 
 
 class invtp_layer:
-    def __init__(self, in_dim, out_dim, activation_function, device):
+    def __init__(self, in_dim, out_dim, activation_function, device, seed):
+        torch.manual_seed(seed)
         # weights
         self.weight = torch.empty(out_dim, in_dim, requires_grad=True, device=device)
         nn.init.orthogonal_(self.weight)
 
         mean, std = self.weight.mean().item(), self.weight.std().item()
         shape = self.weight.T.shape
-        generator = get_seed(0, device)
-        self.back_weight = torch.zeros(size=shape, device=device).normal_(
-            mean, std, generator=generator)
+        gen = get_seed(0, device)
+        # self.back_weight = torch.zeros(size=shape, device=device).normal_(mean, std, generator=gen)
+        r = 1e-4
+        self.back_weight = torch.zeros(size=shape, device=device).uniform_(-r, r, generator=gen)
 
         # functions
         if activation_function == "leakyrelu":

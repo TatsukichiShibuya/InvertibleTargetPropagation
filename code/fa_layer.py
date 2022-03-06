@@ -1,16 +1,22 @@
 import torch
 from torch import nn
-from utils import batch_normalization, get_seed
+from utils import batch_normalization
 
 import sys
 
 
-class bp_layer:
+class fa_layer:
     def __init__(self, in_dim, out_dim, activation_function, device, seed):
         # weights
-        get_seed(seed, device)
+        torch.manual_seed(seed)
         self.weight = torch.empty(out_dim, in_dim, requires_grad=True, device=device)
         nn.init.orthogonal_(self.weight)
+
+        # fixed weight
+        r = 1e-4
+        shape = self.weight.shape
+        gen = get_seed(seed, device)
+        self.fixed_weight = torch.zeros(size=shape, device=device).uniform_(-r, r, generator=gen)
 
         # functions
         if activation_function == "leakyrelu":

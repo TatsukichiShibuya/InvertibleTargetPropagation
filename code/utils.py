@@ -1,13 +1,32 @@
 import numpy as np
 import torch
+from torch import nn
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import math
 
 
+def combined_loss(pred, label):
+    batch_size = pred.shape[0]
+    dim = pred.shape[1]
+    E = torch.eye(dim)
+    E1 = E[:, :10]
+    E2 = E[:, 10:]
+    ce = nn.CrossEntropyLoss(reduction="sum")
+    mse = nn.MSELoss(reduction="sum")
+    return ce(pred @ E1, (label @ E1).max(axis=1).indices) + 1e-3 * mse(pred @ E2, label @ E2)
+
+
 def calc_accuracy(pred, label):
     max_index = pred.max(axis=1).indices
     return (max_index == label).sum().item() / label.shape[0]
+
+
+def calc_accuracy_combined(pred, label):
+    data_size = pred.shape[0]
+    pred_max = pred[:, :10].max(axis=1).indices
+    label_max = label[:, :10].max(axis=1).indices
+    return (pred_max == label_max).sum().item() / data_size
 
 
 def fix_seed(seed):
