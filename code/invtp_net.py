@@ -210,7 +210,6 @@ class invtp_net(net):
                 self.layers[d].target = self.layers[d].target + self.layers[d].BNswx
                 self.layers[d].target = self.layers[d].target - \
                     self.layers[d + 1].backward(self.layers[d + 1].BNswx)
-                self.layers[d].target = batch_normalization(self.layers[d].target)
 
     def compute_target_DTTP(self, x, y, stepsize, refinement_iter):
         y_pred = self.forward(x)
@@ -234,7 +233,7 @@ class invtp_net(net):
                     gt = self.layers[d + 1].backward(self.layers[d + 1].target)
                     ft = self.layers[d + 1].forward(self.layers[d].target, update=False)
                     gft = self.layers[d + 1].backward(ft)
-                    self.layers[d].target = batch_normalization(self.layers[d].target + gt - gft)
+                    self.layers[d].target = self.layers[d].target + gt - gft
 
     def update_weights(self, x, lr):
         self.forward(x)
@@ -245,7 +244,7 @@ class invtp_net(net):
             if self.layers[d].weight.grad is not None:
                 self.layers[d].weight.grad.zero_()
             loss.backward(retain_graph=True)
-            #alpha = lr / batch_size * ((self.depth - d) / self.depth)
+            # alpha = lr / batch_size * ((self.depth - d) / self.depth)
             alpha = lr / batch_size
             tp_grad[d] = alpha * self.layers[d].weight.grad
             self.layers[d].weight = (self.layers[d].weight - tp_grad[d]).detach().requires_grad_()
