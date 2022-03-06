@@ -164,7 +164,9 @@ class invtp_net(net):
     def train_back_weights(self, epoch):
         for d in range(self.depth):
             r = 1e-6
-            noize = (torch.rand(size=self.layers[d].back_weight.shape) - 0.5) * 2 * r
+            gen = get_seed(epoch + self.seed * 13, self.device)
+            shape = self.layers[d].back_weight.shape
+            noize = torch.zeros(size=shape, device=self.device).uniform_(-r, r, generator=gen)
             self.layers[d].back_weight = self.layers[d].back_weight + noize
         return
 
