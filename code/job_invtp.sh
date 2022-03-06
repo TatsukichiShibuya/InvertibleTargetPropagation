@@ -17,4 +17,8 @@ elif [ "${1}" = "mnist" ];then
   wandb agent tatsukichishibuya/InvTP/xmopu8e3
 elif [ "${1}" = "augmented-cifar" ];then
   wandb agent tatsukichishibuya/InvTP/sd9m7ua9
+elif [ "${1}" = "augmented-fashion" ];then
+  wandb agent tatsukichishibuya/InvTP/adrq8jw9
+elif [ "${1}" = "augmented-mnist" ];then
+  wandb agent tatsukichishibuya/InvTP/i47lv9iy
 fi
