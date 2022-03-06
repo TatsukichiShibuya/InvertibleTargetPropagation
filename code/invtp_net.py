@@ -12,10 +12,10 @@ import numpy as np
 
 class invtp_net(net):
     def __init__(self, **kwargs):
+        self.seed = kwargs["seed"]
         super().__init__(**kwargs)
         self.direct_depth = kwargs["direct_depth"]
         assert 1 <= self.direct_depth <= self.depth
-        self.seed = kwargs["seed"]
 
         if kwargs["type"] == "C":
             self.TARGET_TYPE = "DCTP"
