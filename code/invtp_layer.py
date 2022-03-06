@@ -5,7 +5,7 @@ from utils import batch_normalization, batch_normalization_inverse, get_seed, qu
 
 class invtp_layer:
     def __init__(self, in_dim, out_dim, activation_function, device, seed):
-        torch.manual_seed(seed)
+        get_seed(seed)
         # weights
         self.weight = torch.empty(out_dim, in_dim, requires_grad=True, device=device)
         nn.init.orthogonal_(self.weight)
@@ -14,7 +14,7 @@ class invtp_layer:
         shape = self.weight.T.shape
         gen = get_seed(seed * 2, device)
         # self.back_weight = torch.zeros(size=shape, device=device).normal_(mean, std, generator=gen)
-        r = 1e-4
+        r = 1e-3
         self.back_weight = torch.zeros(size=shape, device=device).uniform_(-r, r, generator=gen)
 
         # functions
@@ -50,7 +50,7 @@ class invtp_layer:
             h = self.activation_function(batch_normalization(a))
             return h
 
-    def backward(self, h):
-        a = h @ self.back_weight.T
-        x = self.back_activation_function(batch_normalization(a))
-        return x
+    def backward(self, x):
+        a = x @ self.back_weight.T
+        h = self.back_activation_function(batch_normalization(a))
+        return h
