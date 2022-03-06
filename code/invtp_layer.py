@@ -5,7 +5,7 @@ from utils import batch_normalization, batch_normalization_inverse, get_seed, qu
 
 class invtp_layer:
     def __init__(self, in_dim, out_dim, activation_function, device, seed):
-        get_seed(seed)
+        get_seed(seed, device)
         # weights
         self.weight = torch.empty(out_dim, in_dim, requires_grad=True, device=device)
         nn.init.orthogonal_(self.weight)
