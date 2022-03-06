@@ -10,9 +10,9 @@ eval "$(pyenv init --path)"
 eval "$(pyenv init -)"
 eval "$(pyenv virtualenv-init -)"
 if [ "${1}" = "cifar" ];then
-  wandb agent tatsukichishibuya/InvTP/xkua76lu
+  wandb agent tatsukichishibuya/InvTP/96hkyt2h
 elif [ "${1}" = "fashion" ];then
-  wandb agent tatsukichishibuya/InvTP/qvmtgwhl
+  wandb agent tatsukichishibuya/InvTP/67ewkq6e
 elif [ "${1}" = "mnist" ];then
-  wandb agent tatsukichishibuya/InvTP/9l8xcnnl
+  wandb agent tatsukichishibuya/InvTP/60noc870
 fi
