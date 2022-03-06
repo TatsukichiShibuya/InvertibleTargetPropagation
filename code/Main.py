@@ -145,15 +145,15 @@ def main(**kwargs):
         if kwargs["problem"] == "MNIST":
             trainset, validset, testset = make_MNIST(kwargs["datasize"],
                                                      kwargs["label_augmentation"],
-                                                     kwargs["hid_dim"])
+                                                     kwargs["out_dim"])
         elif kwargs["problem"] == "CIFAR10":
             trainset, validset, testset = make_CIFAR10(kwargs["datasize"],
                                                        kwargs["label_augmentation"],
-                                                       kwargs["hid_dim"])
+                                                       kwargs["out_dim"])
         elif kwargs["problem"] == "fashionMNIST":
             trainset, validset, testset = make_fashionMNIST(kwargs["datasize"],
                                                             kwargs["label_augmentation"],
-                                                            kwargs["hid_dim"])
+                                                            kwargs["out_dim"])
 
         if kwargs["label_augmentation"]:
             loss_function = (lambda pred, label: combined_loss(pred, label))

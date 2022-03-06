@@ -15,4 +15,6 @@ elif [ "${1}" = "fashion" ];then
   wandb agent tatsukichishibuya/InvTP/67ewkq6e
 elif [ "${1}" = "mnist" ];then
   wandb agent tatsukichishibuya/InvTP/xmopu8e3
+elif [ "${1}" = "augmented-cifar" ];then
+  wandb agent tatsukichishibuya/InvTP/sd9m7ua9
 fi
