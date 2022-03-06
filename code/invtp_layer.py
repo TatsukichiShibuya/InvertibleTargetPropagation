@@ -14,7 +14,7 @@ class invtp_layer:
         shape = self.weight.T.shape
         gen = get_seed(seed * 2, device)
         # self.back_weight = torch.zeros(size=shape, device=device).normal_(mean, std, generator=gen)
-        r = 1e-3
+        r = 1e-4
         self.back_weight = torch.zeros(size=shape, device=device).uniform_(-r, r, generator=gen)
 
         # functions

@@ -17,11 +17,6 @@ class invtp_net(net):
         self.direct_depth = kwargs["direct_depth"]
         assert 1 <= self.direct_depth <= self.depth
 
-        if kwargs["type"] == "C":
-            self.TARGET_TYPE = "DCTP"
-        elif kwargs["type"] == "T":
-            self.TARGET_TYPE = "DTTP"
-
     def init_layers(self, in_dim, hid_dim, out_dim, activation_function):
         layers = [None] * self.depth
 
@@ -70,7 +65,7 @@ class invtp_net(net):
                 x, y = x.to(self.device), y.to(self.device)
 
                 # compute target
-                self.compute_target(x, y, stepsize, refinement_iter)
+                self.compute_target(x, y, stepsize)
 
                 ###### monitor start ######
                 monitor_start_time = time.time()
@@ -168,17 +163,11 @@ class invtp_net(net):
 
     def train_back_weights(self, epoch):
         for d in range(self.depth):
-            noize = torch.uniform(-1e-5, 1e-5, size=self.layers[d].back_weight.shape)
+            noize = torch.uniform(-1e-6, 1e-6, size=self.layers[d].back_weight.shape)
             self.layers[d].back_weight = self.layers[d].back_weight + noize
         return
 
-    def compute_target(self, x, y, stepsize, refinement_iter):
-        if self.TARGET_TYPE == "DCTP":
-            self.compute_target_DCTP(x, y, stepsize)
-        elif self.TARGET_TYPE == "DTTP":
-            self.compute_target_DTTP(x, y, stepsize, refinement_iter)
-
-    def compute_target_DCTP(self, x, y, stepsize):
+    def compute_target(self, x, y, stepsize):
         y_pred = self.forward(x)
 
         # initialize
@@ -197,30 +186,6 @@ class invtp_net(net):
                 self.layers[d].target = self.layers[d].target + self.layers[d].BNswx
                 self.layers[d].target = self.layers[d].target - \
                     self.layers[d + 1].backward(self.layers[d + 1].BNswx)
-
-    def compute_target_DTTP(self, x, y, stepsize, refinement_iter):
-        y_pred = self.forward(x)
-
-        # initialize
-        loss = self.loss_function(y_pred, y)
-        for d in range(self.depth):
-            if self.layers[d].BNswx.grad is not None:
-                self.layers[d].BNswx.grad.zero_()
-        loss.backward(retain_graph=True)
-
-        with torch.no_grad():
-            for d in range(self.depth - self.direct_depth, self.depth):
-                self.layers[d].target = self.layers[d].BNswx - stepsize * self.layers[d].BNswx.grad
-
-            for d in reversed(range(self.depth - self.direct_depth)):
-                self.layers[d].target = self.layers[d + 1].backward(self.layers[d + 1].target)
-
-            for i in range(refinement_iter):
-                for d in reversed(range(self.depth - self.direct_depth)):
-                    gt = self.layers[d + 1].backward(self.layers[d + 1].target)
-                    ft = self.layers[d + 1].forward(self.layers[d].target, update=False)
-                    gft = self.layers[d + 1].backward(ft)
-                    self.layers[d].target = self.layers[d].target + gt - gft
 
     def update_weights(self, x, lr):
         self.forward(x)

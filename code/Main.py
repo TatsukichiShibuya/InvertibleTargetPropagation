@@ -225,8 +225,7 @@ def main(**kwargs):
                           direct_depth=kwargs["direct_depth"],
                           activation_function=kwargs["activation_function"],
                           loss_function=loss_function,
-                          seed=kwargs["seed"],
-                          type=kwargs["type"])
+                          seed=kwargs["seed"])
     elif kwargs["algorithm"] == "DITP":
         model = ditp_net(device=device,
                          depth=kwargs["depth"],
