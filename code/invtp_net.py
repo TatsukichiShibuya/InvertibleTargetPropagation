@@ -168,7 +168,7 @@ class invtp_net(net):
 
     def train_back_weights(self, epoch):
         for d in range(self.depth):
-            noize = torch.uniform(-1e-4, 1e-4, size=self.layers[d].back_weight.shape)
+            noize = torch.uniform(-1e-5, 1e-5, size=self.layers[d].back_weight.shape)
             self.layers[d].back_weight = self.layers[d].back_weight + noize
         return
 
