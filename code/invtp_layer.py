@@ -42,18 +42,15 @@ class invtp_layer:
     def forward(self, x, update=True):
         if update:
             self.wx = x @ self.weight.T
-            self.swx = self.activation_function(self.wx)
-            self.BNswx = batch_normalization(self.swx).requires_grad_()
+            self.BNswx = self.activation_function(batch_normalization(self.wx)).requires_grad_()
             self.BNswx.retain_grad()
             return self.BNswx
         else:
             a = x @ self.weight.T
-            s = self.activation_function(a)
-            h = batch_normalization(s)
+            h = self.activation_function(batch_normalization(a))
             return h
 
     def backward(self, h):
         a = h @ self.back_weight.T
-        s = self.back_activation_function(a)
-        x = batch_normalization(s)
+        x = self.back_activation_function(batch_normalization(a))
         return x

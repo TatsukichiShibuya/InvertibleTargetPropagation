@@ -1,7 +1,7 @@
 #!/bin/bash
 #$ -cwd
 #$ -l f_node=1
-#$ -l h_rt=01:50:00
+#$ -l h_rt=06:00:00
 #$ -j y
 #$ -o output/o.$JOB_ID
 export PYENV_ROOT="$HOME/.pyenv"
@@ -10,9 +10,9 @@ eval "$(pyenv init --path)"
 eval "$(pyenv init -)"
 eval "$(pyenv virtualenv-init -)"
 if [ "${1}" = "cifar" ];then
-  wandb agent tatsukichishibuya/InvTP/9985drd7
+  wandb agent tatsukichishibuya/InvTP/xkua76lu
 elif [ "${1}" = "fashion" ];then
-  wandb agent tatsukichishibuya/InvTP/70vxkqo7
+  wandb agent tatsukichishibuya/InvTP/qvmtgwhl
 elif [ "${1}" = "mnist" ];then
-  wandb agent tatsukichishibuya/InvTP/o8yoql2a
+  wandb agent tatsukichishibuya/InvTP/9l8xcnnl
 fi
