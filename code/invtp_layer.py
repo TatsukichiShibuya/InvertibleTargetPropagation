@@ -10,12 +10,10 @@ class invtp_layer:
         self.weight = torch.empty(out_dim, in_dim, requires_grad=True, device=device)
         nn.init.orthogonal_(self.weight)
 
-        mean, std = self.weight.mean().item(), self.weight.std().item()
-        shape = self.weight.T.shape
-        gen = get_seed(seed * 2, device)
-        # self.back_weight = torch.zeros(size=shape, device=device).normal_(mean, std, generator=gen)
         r = 1e-4
-        self.back_weight = torch.zeros(size=shape, device=device).uniform_(-r, r, generator=gen)
+        shape = self.weight.T.shape
+        self.back_weight = torch.zeros(size=shape,
+                                       device=device).uniform_(-r, r, generator=get_seed(seed * 2, device))
 
         # functions
         if activation_function == "leakyrelu":
