@@ -256,7 +256,7 @@ def main(**kwargs):
                     kwargs["refinement_iter"], kwargs["log"])
     elif kwargs["algorithm"] == "InvTP":
         model.train(train_loader, valid_loader, kwargs["epochs"], kwargs["stepsize"],
-                    kwargs["learning_rate"], kwargs["refinement_iter"], kwargs["log"])
+                    kwargs["learning_rate"], kwargs["log"])
     elif kwargs["algorithm"] == "DITP":
         model.train(train_loader, valid_loader, kwargs["epochs"], kwargs["stepsize"],
                     kwargs["learning_rate"], kwargs["log"])

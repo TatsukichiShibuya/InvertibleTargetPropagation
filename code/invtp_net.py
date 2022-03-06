@@ -33,7 +33,7 @@ class invtp_net(net):
 
         return layers
 
-    def train(self, train_loader, valid_loader, epochs, stepsize, lr, refinement_iter, log):
+    def train(self, train_loader, valid_loader, epochs, stepsize, lr, log):
         # reconstruction loss
         rec_loss = self.reconstruction_loss_of_dataset(train_loader)
         if torch.isnan(rec_loss).any():
@@ -83,12 +83,7 @@ class invtp_net(net):
                         target_ratio_sum[d1] = target_ratio_sum[d1] + target_ratio.sum()
                         target_angle = calc_angle(v1[nonzero], v2[nonzero])
                         target_angle_sum[d1] = target_angle_sum[d1] + target_angle.sum()
-                    monitor_end_time = time.time()
-                    monitor_time = monitor_time + monitor_end_time - monitor_start_time
-                ###### monitor end ######
 
-                ###### monitor start ######
-                monitor_start_time = time.time()
                 y_pred = self.forward(x)
                 loss = self.loss_function(y_pred, y)
                 for d in range(self.depth):
@@ -189,6 +184,7 @@ class invtp_net(net):
                 self.layers[d].target = self.layers[d].target + self.layers[d].BNswx
                 self.layers[d].target = self.layers[d].target - \
                     self.layers[d + 1].backward(self.layers[d + 1].BNswx)
+                self.layers[d].target = batch_normalization(self.layers[d].target)
 
     def update_weights(self, x, lr):
         self.forward(x)
