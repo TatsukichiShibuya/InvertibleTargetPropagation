@@ -156,7 +156,7 @@ def main(**kwargs):
                                                             kwargs["out_dim"])
 
         if kwargs["label_augmentation"]:
-            loss_function = (lambda pred, label: combined_loss(pred, label))
+            loss_function = (lambda pred, label: combined_loss(pred, label, kwargs["device"]))
         else:
             loss_function = nn.CrossEntropyLoss(reduction="sum")
 

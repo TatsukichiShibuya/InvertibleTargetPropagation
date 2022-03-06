@@ -6,10 +6,10 @@ from mpl_toolkits.mplot3d import Axes3D
 import math
 
 
-def combined_loss(pred, label):
+def combined_loss(pred, label, device="cpu"):
     batch_size = pred.shape[0]
     dim = pred.shape[1]
-    E = torch.eye(dim)
+    E = torch.eye(dim, device=device)
     E1 = E[:, :10]
     E2 = E[:, 10:]
     ce = nn.CrossEntropyLoss(reduction="sum")
