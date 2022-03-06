@@ -15,6 +15,7 @@ class invtp_net(net):
         super().__init__(**kwargs)
         self.direct_depth = kwargs["direct_depth"]
         assert 1 <= self.direct_depth <= self.depth
+        self.seed = kwargs["seed"]
 
         if kwargs["type"] == "C":
             self.TARGET_TYPE = "DCTP"
@@ -25,12 +26,15 @@ class invtp_net(net):
         layers = [None] * self.depth
 
         # first layer
-        layers[0] = invtp_layer(in_dim, hid_dim, activation_function, self.device, 0)
+        layers[0] = invtp_layer(in_dim, hid_dim, activation_function, self.device,
+                                0 + self.seed * 11)
         # hidden layers
         for d in range(1, self.depth - 1):
-            layers[d] = invtp_layer(hid_dim, hid_dim, activation_function, self.device, d)
+            layers[d] = invtp_layer(hid_dim, hid_dim, activation_function, self.device,
+                                    d + self.seed * 11)
         # last layer
-        layers[-1] = invtp_layer(hid_dim, out_dim, activation_function, self.device, self.depth - 1)
+        layers[-1] = invtp_layer(hid_dim, out_dim, activation_function, self.device,
+                                 self.depth - 1 + self.seed)
 
         return layers
 
