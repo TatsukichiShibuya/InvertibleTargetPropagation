@@ -1,6 +1,6 @@
 import torch
 from torch import nn
-from utils import batch_normalization
+from utils import batch_normalization, get_seed
 
 import sys
 
@@ -8,7 +8,7 @@ import sys
 class fa_layer:
     def __init__(self, in_dim, out_dim, activation_function, device, seed):
         # weights
-        torch.manual_seed(seed)
+        get_seed(seed, device)
         self.weight = torch.empty(out_dim, in_dim, requires_grad=True, device=device)
         nn.init.orthogonal_(self.weight)
 
