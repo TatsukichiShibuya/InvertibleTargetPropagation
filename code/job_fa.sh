@@ -1,7 +1,7 @@
 #!/bin/bash
 #$ -cwd
 #$ -l f_node=1
-#$ -l h_rt=03:50:00
+#$ -l h_rt=03:40:00
 #$ -j y
 #$ -o output/o.$JOB_ID
 export PYENV_ROOT="$HOME/.pyenv"
@@ -10,5 +10,5 @@ eval "$(pyenv init --path)"
 eval "$(pyenv init -)"
 eval "$(pyenv virtualenv-init -)"
 if [ "${1}" = "cifar100" ];then
-  wandb agent tatsukichishibuya/InvTP/scvmth74
+  wandb agent tatsukichishibuya/InvTP/fnrv0asa
 fi
