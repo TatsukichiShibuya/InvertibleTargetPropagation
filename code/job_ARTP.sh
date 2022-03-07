@@ -10,5 +10,5 @@ eval "$(pyenv init --path)"
 eval "$(pyenv init -)"
 eval "$(pyenv virtualenv-init -)"
 if [ "${1}" = "cifar100" ];then
-  wandb agent tatsukichishibuya/InvTP/scvmth74
+  wandb agent tatsukichishibuya/InvTP/q4y9959e
 fi

@@ -38,7 +38,8 @@ class net(metaclass=ABCMeta):
         elif isinstance(self.loss_function, nn.MSELoss):  # regression
             return self.loss_function(pred, label) / len(data_loader.dataset), None
         else:
-            return self.loss_function(pred, label) / len(data_loader.dataset), calc_accuracy_combined(pred, label)
+            return self.loss_function(pred, label) / len(data_loader.dataset), calc_accuracy_combined(pred, label,
+                                                                                                      data_loader.dataset.num_classes)
 
     @abstractmethod
     def init_layers(self, in_dim, hid_dim, out_dim, activation_function):

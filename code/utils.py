@@ -6,12 +6,12 @@ from mpl_toolkits.mplot3d import Axes3D
 import math
 
 
-def combined_loss(pred, label, device="cpu"):
+def combined_loss(pred, label, device="cpu", num_classes=10):
     batch_size = pred.shape[0]
     dim = pred.shape[1]
     E = torch.eye(dim, device=device)
-    E1 = E[:, :10]
-    E2 = E[:, 10:]
+    E1 = E[:, :num_classes]
+    E2 = E[:, num_classes:]
     ce = nn.CrossEntropyLoss(reduction="sum")
     mse = nn.MSELoss(reduction="sum")
     return ce(pred @ E1, (label @ E1).max(axis=1).indices) + 1e-3 * mse(pred @ E2, label @ E2)
@@ -22,10 +22,10 @@ def calc_accuracy(pred, label):
     return (max_index == label).sum().item() / label.shape[0]
 
 
-def calc_accuracy_combined(pred, label):
+def calc_accuracy_combined(pred, label, num_classes=10):
     data_size = pred.shape[0]
-    pred_max = pred[:, :10].max(axis=1).indices
-    label_max = label[:, :10].max(axis=1).indices
+    pred_max = pred[:, :num_classes].max(axis=1).indices
+    label_max = label[:, :num_classes].max(axis=1).indices
     return (pred_max == label_max).sum().item() / data_size
 
 

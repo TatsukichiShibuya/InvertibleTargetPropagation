@@ -1,5 +1,5 @@
 from utils import plot_regression, worker_init_fn, fix_seed, combined_loss
-from dataset import make_regression_dataset, make_MNIST, make_CIFAR10, make_fashionMNIST
+from dataset import make_regression_dataset, make_MNIST, make_CIFAR10, make_fashionMNIST, make_CIFAR100
 
 from bp_net import bp_net
 from dttp_net import dttp_net
@@ -23,7 +23,7 @@ def get_args():
 
     # dataset
     parser.add_argument("--problem",    type=str, default="classification",
-                        choices=['regression', 'MNIST', 'CIFAR10', "fashionMNIST"])
+                        choices=['regression', 'MNIST', 'CIFAR10', "fashionMNIST", "CIFAR100"])
     parser.add_argument("--label_augmentation", action="store_true")
     parser.add_argument("--datasize",   type=int, default=70000)
 
@@ -143,20 +143,28 @@ def main(**kwargs):
         loss_function = nn.MSELoss(reduction="sum")
     else:
         if kwargs["problem"] == "MNIST":
+            num_classes = 10
             trainset, validset, testset = make_MNIST(kwargs["datasize"],
                                                      kwargs["label_augmentation"],
                                                      kwargs["out_dim"])
         elif kwargs["problem"] == "CIFAR10":
+            num_classes = 10
             trainset, validset, testset = make_CIFAR10(kwargs["datasize"],
                                                        kwargs["label_augmentation"],
                                                        kwargs["out_dim"])
+        elif kwargs["problem"] == "CIFAR100":
+            num_classes = 100
+            trainset, validset, testset = make_CIFAR100(kwargs["datasize"],
+                                                        kwargs["label_augmentation"],
+                                                        kwargs["out_dim"])
         elif kwargs["problem"] == "fashionMNIST":
+            num_classes = 10
             trainset, validset, testset = make_fashionMNIST(kwargs["datasize"],
                                                             kwargs["label_augmentation"],
                                                             kwargs["out_dim"])
 
         if kwargs["label_augmentation"]:
-            loss_function = (lambda pred, label: combined_loss(pred, label, device))
+            loss_function = (lambda pred, label: combined_loss(pred, label, device, num_classes))
         else:
             loss_function = nn.CrossEntropyLoss(reduction="sum")
 
