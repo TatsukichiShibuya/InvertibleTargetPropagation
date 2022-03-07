@@ -1,7 +1,7 @@
 #!/bin/bash
 #$ -cwd
 #$ -l f_node=1
-#$ -l h_rt=03:00:00
+#$ -l h_rt=01:20:00
 #$ -j y
 #$ -o output/o.$JOB_ID
 export PYENV_ROOT="$HOME/.pyenv"
