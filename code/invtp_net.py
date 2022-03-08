@@ -157,14 +157,10 @@ class invtp_net(net):
                         print(f"\tBP angle {d}    : {bp_angle_sum[d].item() / len(train_loader)}")
 
     def train_back_weights(self, epoch):
-        """
-        for d in range(self.depth):
-            r = 1e-6
-            gen = get_seed(epoch + self.seed * 13, self.device)
-            shape = self.layers[d].back_weight.shape
-            noize = torch.zeros(size=shape, device=self.device).uniform_(-r, r, generator=gen)
-            self.layers[d].back_weight = self.layers[d].back_weight + noize
-        """
+        if epoch % 2 == 0:
+            for d in range(self.depth):
+                self.layers[d].back_weight = self.layers[d].weight.detach(
+                ).clone().to(self.device).T
         return
 
     def compute_target(self, x, y, stepsize):
