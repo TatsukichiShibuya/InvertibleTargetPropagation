@@ -157,10 +157,12 @@ class invtp_net(net):
                         print(f"\tBP angle {d}    : {bp_angle_sum[d].item() / len(train_loader)}")
 
     def train_back_weights(self, epoch):
-        if epoch % 2 == 0:
+        """
+        if epoch % 100 == 0:
             for d in range(self.depth):
                 self.layers[d].back_weight = self.layers[d].weight.detach(
                 ).clone().to(self.device).T
+        """
         return
 
     def compute_target(self, x, y, stepsize):
