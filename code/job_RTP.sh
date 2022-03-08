@@ -9,6 +9,6 @@ export PATH="$PYENV_ROOT/bin:$PATH"
 eval "$(pyenv init --path)"
 eval "$(pyenv init -)"
 eval "$(pyenv virtualenv-init -)"
-if [ "${1}" = "cifar100" ];then
-  wandb agent tatsukichishibuya/InvTP/1i0irelf
+if [ "${1}" = "fashion" ];then
+  wandb agent tatsukichishibuya/InvTP/fgb5595s
 fi
