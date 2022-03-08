@@ -9,4 +9,4 @@ export PATH="$PYENV_ROOT/bin:$PATH"
 eval "$(pyenv init --path)"
 eval "$(pyenv init -)"
 eval "$(pyenv virtualenv-init -)"
-wandb agent tatsukichishibuya/InvTP/93wqdx80
+wandb agent tatsukichishibuya/InvTP/qqfq9g2q
