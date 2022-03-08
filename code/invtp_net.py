@@ -158,7 +158,7 @@ class invtp_net(net):
 
     def train_back_weights(self, epoch, update_back_weights):
         if update_back_weights:
-            if epoch % 100 == 0:
+            if epochs > 0 and epoch % 100 == 0:
                 for d in range(self.depth):
                     self.layers[d].back_weight = self.layers[d].weight.clone(
                     ).detach().to(self.device).T
