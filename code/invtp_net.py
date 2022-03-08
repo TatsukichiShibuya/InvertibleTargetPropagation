@@ -33,7 +33,7 @@ class invtp_net(net):
 
         return layers
 
-    def train(self, train_loader, valid_loader, epochs, stepsize, lr, log):
+    def train(self, train_loader, valid_loader, epochs, stepsize, lr, update_back_weights, log):
         # reconstruction loss
         rec_loss = self.reconstruction_loss_of_dataset(train_loader)
         if torch.isnan(rec_loss).any():
@@ -52,7 +52,7 @@ class invtp_net(net):
             start_time = time.time()
 
             # train backward
-            self.train_back_weights(e)
+            self.train_back_weights(e, update_back_weights)
 
             rec_loss = self.reconstruction_loss_of_dataset(train_loader)
             if torch.isnan(rec_loss).any():
@@ -156,13 +156,12 @@ class invtp_net(net):
                     for d in range(self.depth):
                         print(f"\tBP angle {d}    : {bp_angle_sum[d].item() / len(train_loader)}")
 
-    def train_back_weights(self, epoch):
-        """
-        if epoch % 100 == 0:
-            for d in range(self.depth):
-                self.layers[d].back_weight = self.layers[d].weight.detach(
-                ).clone().to(self.device).T
-        """
+    def train_back_weights(self, epoch, update_back_weights):
+        if update_back_weights:
+            if epoch % 100 == 0:
+                for d in range(self.depth):
+                    self.layers[d].back_weight = self.layers[d].weight.clone(
+                    ).detach().to(self.device).T
         return
 
     def compute_target(self, x, y, stepsize):

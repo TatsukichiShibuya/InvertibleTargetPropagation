@@ -41,6 +41,8 @@ def get_args():
     parser.add_argument("--batch_size",  type=int, default=128)
     parser.add_argument("--seed",       type=int, default=1)
 
+    parser.add_argument("--update_back_weights", action="store_true")
+
     # parameters used in BP
     parser.add_argument("--learning_rate", "-lr", type=float, default=1e-6)
 
