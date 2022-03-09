@@ -41,8 +41,6 @@ def get_args():
     parser.add_argument("--batch_size",  type=int, default=128)
     parser.add_argument("--seed",       type=int, default=1)
 
-    parser.add_argument("--update_back_weights", action="store_true")
-
     # parameters used in BP
     parser.add_argument("--learning_rate", "-lr", type=float, default=1e-6)
 
@@ -244,8 +242,7 @@ def main(**kwargs):
                          hid_dim=kwargs["hid_dim"],
                          direct_depth=kwargs["direct_depth"],
                          activation_function=kwargs["activation_function"],
-                         loss_function=loss_function,
-                         type=kwargs["type"])
+                         loss_function=loss_function)
 
     # train
     if kwargs["algorithm"] == "BP":
@@ -266,7 +263,7 @@ def main(**kwargs):
                     kwargs["refinement_iter"], kwargs["log"])
     elif kwargs["algorithm"] == "InvTP":
         model.train(train_loader, valid_loader, kwargs["epochs"], kwargs["stepsize"],
-                    kwargs["learning_rate"], kwargs["update_back_weights"], kwargs["log"])
+                    kwargs["learning_rate"], kwargs["log"])
     elif kwargs["algorithm"] == "DITP":
         model.train(train_loader, valid_loader, kwargs["epochs"], kwargs["stepsize"],
                     kwargs["learning_rate"], kwargs["log"])
