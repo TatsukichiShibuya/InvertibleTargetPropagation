@@ -1,7 +1,7 @@
 #!/bin/bash
 #$ -cwd
 #$ -l f_node=1
-#$ -l h_rt=04:20:00
+#$ -l h_rt=12:00:00
 #$ -j y
 #$ -o output/o.$JOB_ID
 export PYENV_ROOT="$HOME/.pyenv"
@@ -15,4 +15,6 @@ elif [ "${1}" = "fashion" ];then
   wandb agent tatsukichishibuya/InvTP/5clamq3h
 elif [ "${1}" = "cifar10" ];then
   wandb agent tatsukichishibuya/InvTP/hw6pfrun
+elif [ "${1}" = "cifar100" ];then
+  wandb agent tatsukichishibuya/InvTP/ner0aqmn
 fi
