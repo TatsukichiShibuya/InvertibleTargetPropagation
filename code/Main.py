@@ -32,14 +32,24 @@ def get_args():
     parser.add_argument("--in_dim",     type=int, default=784)
     parser.add_argument("--hid_dim",    type=int, default=256)
     parser.add_argument("--out_dim",    type=int, default=10)
-    parser.add_argument("--activation_function", type=str, default="leakyrelu",
-                        choices=['leakyrelu', 'sigmoid', 'relu', 'tanh'])
+    parser.add_argument("--activation_function", type=str, default="tanh",
+                        choices=['leakyrelu', 'sigmoid', 'relu', 'tanh', 'linear'])
+    parser.add_argument("--back_activation_function", type=str, default="tanh",
+                        choices=['leakyrelu', 'sigmoid', 'relu', 'tanh', 'linear'])
     # learning algorithm
     parser.add_argument("--algorithm",  type=str, default="BP",
                         choices=['BP', 'DTTP', 'MyTP', 'InvTP', "DITP", "FA"])
     parser.add_argument("--epochs",     type=int, default=100)
     parser.add_argument("--batch_size",  type=int, default=128)
     parser.add_argument("--seed",       type=int, default=1)
+
+    parser.add_argument("--init_dist",  type=str, default="uniform",
+                        choices=["uniform", "gaussian", "eye"])
+    parser.add_argument("--init_range", type=float, default=1e-4)  # uniform
+    parser.add_argument("--init_mean",  type=float, default=0)     # gaussian
+    parser.add_argument("--init_std",   type=float, default=1e-4)  # gaussian
+
+    parser
 
     # parameters used in BP
     parser.add_argument("--learning_rate", "-lr", type=float, default=1e-6)
@@ -162,7 +172,6 @@ def main(**kwargs):
             trainset, validset, testset = make_fashionMNIST(kwargs["datasize"],
                                                             kwargs["label_augmentation"],
                                                             kwargs["out_dim"])
-
         if kwargs["label_augmentation"]:
             loss_function = (lambda pred, label: combined_loss(pred, label, device, num_classes))
         else:
@@ -232,7 +241,9 @@ def main(**kwargs):
                           hid_dim=kwargs["hid_dim"],
                           direct_depth=kwargs["direct_depth"],
                           activation_function=kwargs["activation_function"],
+                          back_activation_function=kwargs["back_activation_function"],
                           loss_function=loss_function,
+                          init_params=make_init_params(**kwargs),
                           seed=kwargs["seed"])
     elif kwargs["algorithm"] == "DITP":
         model = ditp_net(device=device,
@@ -274,6 +285,21 @@ def main(**kwargs):
     # plot
     if kwargs["plot"] and (["problem"] == "regression" and kwargs["in_dim"] == 2):
         plot_regression(model, kwargs["algorithm"])
+
+
+def make_init_params(**kwargs):
+    init_params = {}
+    init_params["dist"] = kwargs["init_dist"]
+    if init_params["dist"] == "uniform":
+        init_params["range"] = kwargs["init_range"]
+    elif init_params["dist"] == "gaussian":
+        init_params["mean"] = kwargs["init_mean"]
+        init_params["std"] = kwargs["init_std"]
+    elif init_params["dist"] == "eye":
+        pass
+    else:
+        raise NotImplementedError()
+    return init_params
 
 
 if __name__ == '__main__':

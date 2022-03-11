@@ -13,6 +13,9 @@ import numpy as np
 class invtp_net(net):
     def __init__(self, **kwargs):
         self.seed = kwargs["seed"]
+        self.init_params = kwargs["init_params"]
+        self.activation_function = kwargs["activation_function"]
+        self.back_activation_function = kwargs["back_activation_function"]
         super().__init__(**kwargs)
         self.direct_depth = kwargs["direct_depth"]
         assert 1 <= self.direct_depth <= self.depth
@@ -22,14 +25,14 @@ class invtp_net(net):
 
         # first layer
         layers[0] = invtp_layer(in_dim, hid_dim, activation_function, self.device,
-                                0 + self.seed * 11)
+                                0 + self.seed * 11, self.init_params, self.back_activation_function)
         # hidden layers
         for d in range(1, self.depth - 1):
             layers[d] = invtp_layer(hid_dim, hid_dim, activation_function, self.device,
-                                    d + self.seed * 11)
+                                    d + self.seed * 11, self.init_params, self.back_activation_function)
         # last layer
         layers[-1] = invtp_layer(hid_dim, out_dim, activation_function, self.device,
-                                 self.depth - 1 + self.seed)
+                                 self.depth - 1 + self.seed, self.init_params, self.back_activation_function)
 
         return layers
 
@@ -270,17 +273,6 @@ class invtp_net(net):
         for d in reversed(range(self.depth)):
             t, h = self.layers[d].target, self.layers[d].BNswx
             base_loss, rec_loss = torch.norm(t - h)**2, torch.tensor(0)
-            """if d > 0:
-                h_rec = self.layers[d].backward(h)
-                h_prev = self.layers[d - 1].BNswx
-                rec_loss = torch.norm(h_prev - h_rec)**2
-            if d < self.depth - 1:
-                h_upper = self.layers[d + 1].BNswx
-                h_rec = self.layers[d + 1].backward(h_upper)
-                rec_loss = torch.norm(h - h_rec)**2
-            ratio = base_loss.item() / (rec_loss.item() + 1e-12)
-            loss = base_loss + 10 * ratio * rec_loss
-            """
             loss = base_loss
             self.weights_zero_grad(d)
             loss.backward(retain_graph=True)
