@@ -10,5 +10,5 @@ eval "$(pyenv init --path)"
 eval "$(pyenv init -)"
 eval "$(pyenv virtualenv-init -)"
 if [ "${1}" = "fashion" ];then
-  wandb agent tatsukichishibuya/InvTP/n4pviyee
+  wandb agent tatsukichishibuya/InvTP/vmeetfqm
 fi
