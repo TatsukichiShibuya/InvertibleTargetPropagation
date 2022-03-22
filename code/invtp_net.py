@@ -277,8 +277,9 @@ class invtp_net(net):
             self.weights_zero_grad(d)
             loss.backward(retain_graph=True)
             alpha = lr / batch_size
-            tp_grad[d] = alpha * self.layers[d].weight.grad
-            self.layers[d].weight = (self.layers[d].weight - tp_grad[d]).detach().requires_grad_()
+            tp_grad[d] = self.layers[d].weight.grad
+            self.layers[d].weight = (self.layers[d].weight - alpha *
+                                     tp_grad[d]).detach().requires_grad_()
         return tp_grad
 
     def reconstruction_loss(self, x):
